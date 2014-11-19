@@ -1,26 +1,38 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
+	"log"
 	"net"
-	"os"
 	"time"
 )
 
-func Dial(host string, port int, timeout int) error {
-	_timeout := time.Duration(timeout) * time.Second
+var debug *bool
 
-	conn, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", host, port), _timeout)
-	if err != nil {
-		return err
+func logDebug(msg string) {
+	if *debug {
+		log.Println(msg)
 	}
+}
 
-	fmt.Fprintf(conn, "GET / HTTP/1.0\r\n\r\n")
-	_, err := bufio.NewReader(conn).ReadString('\n')
-	if err != nil {
-		return err
+func Dial(host string, port int, timeoutSeconds int) error {
+	timeout := time.Duration(timeoutSeconds) * time.Second
+	start := time.Now()
+
+	for {
+		_, err := net.Dial("tcp", fmt.Sprintf("%s:%d", host, port))
+		if err != nil {
+			logDebug("Down...")
+
+			elapsed := time.Since(start)
+			if elapsed > timeout {
+				return err
+			}
+		} else {
+			logDebug("Up...")
+			return nil
+		}
 	}
 
 	return nil
@@ -30,12 +42,12 @@ func main() {
 	host := flag.String("host", "localshot", "host to connect")
 	port := flag.Int("port", 80, "port to connect")
 	timeout := flag.Int("timeout", 10, "timeout to wait port be available")
+	debug = flag.Bool("debug", false, "enable debug")
 
 	flag.Parse()
 
-	fmt.Println("starting")
+	logDebug("starting")
 	if err := Dial(*host, *port, *timeout); err != nil {
-		// fmt.Fprintf(os.Stderr, "error: %v\n", err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 }

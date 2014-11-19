@@ -10,12 +10,13 @@ Wait for a port be available in a specific host.
 - **`-host`**: Host to connect
 - **`-port`**: Port to connect
 - **`-timeout`**: Timeout to wait port be available
+- **`-debug`**: Enable debug
 
 
 ### Example
 
 ```bash
-waitforit -host=google.com -port=90 -timeout=20
+waitforit -host=google.com -port=90 -timeout=20 -debug
 ```
 
 
