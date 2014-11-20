@@ -29,6 +29,8 @@ func Dial(host string, port int, timeoutSeconds int) error {
 
 		logDebug("Down...")
 		if time.Since(start) > timeout { return err }
+
+		time.Sleep(500 * time.Millisecond)
 	}
 
 	return nil
