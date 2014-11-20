@@ -22,17 +22,13 @@ func Dial(host string, port int, timeoutSeconds int) error {
 
 	for {
 		_, err := net.Dial("tcp", fmt.Sprintf("%s:%d", host, port))
-		if err != nil {
-			logDebug("Down...")
-
-			elapsed := time.Since(start)
-			if elapsed > timeout {
-				return err
-			}
-		} else {
+		if err == nil {
 			logDebug("Up...")
 			return nil
 		}
+
+		logDebug("Down...")
+		if time.Since(start) > timeout { return err }
 	}
 
 	return nil
@@ -41,12 +37,12 @@ func Dial(host string, port int, timeoutSeconds int) error {
 func main() {
 	host := flag.String("host", "localshot", "host to connect")
 	port := flag.Int("port", 80, "port to connect")
-	timeout := flag.Int("timeout", 10, "timeout to wait port be available")
+	timeout := flag.Int("timeout", 10, "time to wait until port become available")
 	debug = flag.Bool("debug", false, "enable debug")
 
 	flag.Parse()
 
-	logDebug("starting")
+	logDebug("Starting...")
 	if err := Dial(*host, *port, *timeout); err != nil {
 		log.Fatal(err)
 	}
