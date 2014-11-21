@@ -37,7 +37,7 @@ func Dial(host string, port int, timeoutSeconds int) error {
 }
 
 func main() {
-	host := flag.String("host", "localshot", "host to connect")
+	host := flag.String("host", "localhost", "host to connect")
 	port := flag.Int("port", 80, "port to connect")
 	timeout := flag.Int("timeout", 10, "time to wait until port become available")
 	debug = flag.Bool("debug", false, "enable debug")
