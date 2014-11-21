@@ -1,5 +1,5 @@
 local:
   image: golang:1.3
-  command: go run src/waitforit/main.go -dir=src/waitforit
+  command: go run src/waitforit/main.go
   volumes:
     - .:/go/src/waitforit
