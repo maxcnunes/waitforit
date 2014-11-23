@@ -5,30 +5,57 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"regexp"
 	"time"
 )
 
 var debug *bool
 
-func logDebug(msg string) {
+const pattConn string = `([a-z]{3}):\/\/([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}):([0-9]+)`
+
+func logDebug(msg string, conn *Connection) {
 	if *debug {
-		log.Println(msg)
+		log.Printf("%s - %s://%s", msg, conn.Type, conn.Address)
 	}
 }
 
-func Dial(host string, port int, timeoutSeconds int) error {
+type Connection struct {
+	Type    string
+	Address string
+}
+
+func buildConn(host string, port int, fullConn string) *Connection {
+	if host != "" {
+		return &Connection{Type: "tcp", Address: fmt.Sprintf("%s:%d", host, port)}
+	}
+
+	if fullConn == "" {
+		return nil
+	}
+
+	res := regexp.MustCompile(pattConn).FindAllStringSubmatch(fullConn, -1)[0]
+	if len(res) != 4 {
+		return nil
+	}
+
+	return &Connection{Type: res[1], Address: fmt.Sprintf("%s:%s", res[2], res[3])}
+}
+
+func dial(conn *Connection, timeoutSeconds int) error {
 	timeout := time.Duration(timeoutSeconds) * time.Second
 	start := time.Now()
 
 	for {
-		_, err := net.Dial("tcp", fmt.Sprintf("%s:%d", host, port))
+		_, err := net.Dial(conn.Type, conn.Address)
 		if err == nil {
-			logDebug("Up...")
+			logDebug("Up", conn)
 			return nil
 		}
 
-		logDebug("Down...")
-		if time.Since(start) > timeout { return err }
+		logDebug("Down", conn)
+		if time.Since(start) > timeout {
+			return err
+		}
 
 		time.Sleep(500 * time.Millisecond)
 	}
@@ -37,15 +64,21 @@ func Dial(host string, port int, timeoutSeconds int) error {
 }
 
 func main() {
-	host := flag.String("host", "localhost", "host to connect")
-	port := flag.Int("port", 80, "port to connect")
+	fullConn := flag.String("full-connection", "", "full connection")
+	host := flag.String("host", "", "host to connect")
+	port := flag.Int("port", 0, "port to connect")
 	timeout := flag.Int("timeout", 10, "time to wait until port become available")
 	debug = flag.Bool("debug", false, "enable debug")
 
 	flag.Parse()
 
-	logDebug("Starting...")
-	if err := Dial(*host, *port, *timeout); err != nil {
+	conn := buildConn(*host, *port, *fullConn)
+	if conn == nil {
+		log.Fatal("Invalid connection")
+	}
+
+	logDebug("Waiting", conn)
+	if err := dial(conn, *timeout); err != nil {
 		log.Fatal(err)
 	}
 }
