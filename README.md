@@ -41,3 +41,12 @@ docker-compose run --rm local
 ```bash
 docker-compose run --rm local go run src/waitforit/main.go -h
 ```
+
+
+## Build
+
+Using [goxc](https://github.com/laher/goxc).
+
+```bash
+goxc
+```
