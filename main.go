@@ -67,7 +67,7 @@ func dial(conn *Connection, timeoutSeconds int) error {
 func main() {
 	fullConn := flag.String("full-connection", "", "full connection")
 	host := flag.String("host", "", "host to connect")
-	port := flag.Int("port", 0, "port to connect")
+	port := flag.Int("port", 80, "port to connect")
 	timeout := flag.Int("timeout", 10, "time to wait until port become available")
 	debug = flag.Bool("debug", false, "enable debug")
 
