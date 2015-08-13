@@ -1,33 +1,38 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"net"
+	"net/http"
 	"regexp"
+	"strconv"
 	"time"
 )
 
 var debug *bool
 
-const pattConn string = `([a-z]{3}):\/\/(.+):([0-9]+)`
+const pattConn string = `([a-z]{3,}):\/\/(.+)(:[0-9]+)?`
 
-func logDebug(msg string, conn *Connection) {
+func logDebug(msg interface{}) {
 	if *debug {
-		log.Printf("%s - %s://%s", msg, conn.Type, conn.Address)
+		log.Print(msg)
 	}
 }
 
 // Connection data
 type Connection struct {
-	Type    string
-	Address string
+	Type   string
+	Scheme string
+	Port   int
+	Host   string
 }
 
 func buildConn(host string, port int, fullConn string) *Connection {
 	if host != "" {
-		return &Connection{Type: "tcp", Address: fmt.Sprintf("%s:%d", host, port)}
+		return &Connection{Type: "tcp", Host: host, Port: port}
 	}
 
 	if fullConn == "" {
@@ -39,29 +44,65 @@ func buildConn(host string, port int, fullConn string) *Connection {
 		return nil
 	}
 
-	return &Connection{Type: res[1], Address: fmt.Sprintf("%s:%s", res[2], res[3])}
+	port, err := strconv.Atoi(res[3])
+	if err != nil {
+		port = 80
+	}
+
+	conn := &Connection{Type: res[1], Host: res[2], Port: port}
+	if conn.Type != "tcp" {
+		conn.Scheme = conn.Type
+		conn.Type = "tcp"
+	}
+
+	return conn
 }
 
-func dial(conn *Connection, timeoutSeconds int) error {
+func pingTCP(conn *Connection, timeoutSeconds int) error {
 	timeout := time.Duration(timeoutSeconds) * time.Second
 	start := time.Now()
+	address := fmt.Sprintf("%s:%d", conn.Host, conn.Port)
+	logDebug("Dial adress: " + address)
 
 	for {
-		_, err := net.Dial(conn.Type, conn.Address)
+		_, err := net.Dial(conn.Type, address)
+		logDebug("ping TCP")
+
 		if err == nil {
-			logDebug("Up", conn)
+			logDebug("Up")
 			return nil
 		}
 
-		logDebug("Down", conn)
+		logDebug("Down")
+		logDebug(err)
 		if time.Since(start) > timeout {
 			return err
 		}
 
 		time.Sleep(500 * time.Millisecond)
 	}
+}
 
-	return nil
+func pingHTTP(conn *Connection, timeoutSeconds int) error {
+	timeout := time.Duration(timeoutSeconds) * time.Second
+	start := time.Now()
+	address := fmt.Sprintf("%s://%s:%d", conn.Scheme, conn.Host, conn.Port)
+	logDebug("HTTP adress: " + address)
+
+	for {
+		resp, err := http.Get(address)
+		logDebug("ping HTTP " + resp.Status)
+
+		if err == nil && resp.StatusCode < http.StatusInternalServerError {
+			return nil
+		}
+
+		if time.Since(start) > timeout {
+			return errors.New(resp.Status)
+		}
+
+		time.Sleep(500 * time.Millisecond)
+	}
 }
 
 func main() {
@@ -78,8 +119,16 @@ func main() {
 		log.Fatal("Invalid connection")
 	}
 
-	logDebug("Waiting", conn)
-	if err := dial(conn, *timeout); err != nil {
+	logDebug("Waiting")
+	if err := pingTCP(conn, *timeout); err != nil {
+		log.Fatal(err)
+	}
+
+	if conn.Scheme != "http" && conn.Scheme != "https" {
+		return
+	}
+
+	if err := pingHTTP(conn, *timeout); err != nil {
 		log.Fatal(err)
 	}
 }

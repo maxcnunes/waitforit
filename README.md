@@ -11,9 +11,9 @@ Wait until a port become available in a specific host.
 
 ### Options
 
-- **-full-connection**: Full connection `<protocol>://<host>:<port>`
+- **-full-connection**: Full connection `<protocol/scheme>://<host>:<port>`
 - **-host**: Host to connect
-- **-port**: Port to connect
+- **-port**: Port to connect (default 80)
 - **-timeout**: Time to wait until port become available
 - **-debug**: Enable debug
 
@@ -22,10 +22,12 @@ Wait until a port become available in a specific host.
 
 ```bash
 waitforit -host=google.com -port=90 -timeout=20 -debug
-```
 
-```bash
 waitforit -full-connection=tcp://google.com:90 -timeout=20 -debug
+
+waitforit -full-connection=http://google.com -timeout=20 -debug
+
+waitforit -full-connection=http://google.com:90 -timeout=20 -debug
 ```
 
 ## Development
