@@ -19,6 +19,7 @@ func logDebug(msg string, conn *Connection) {
 	}
 }
 
+// Connection data
 type Connection struct {
 	Type    string
 	Address string
