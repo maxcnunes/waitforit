@@ -14,7 +14,7 @@ import (
 
 var debug *bool
 
-const pattConn string = `([a-z]{3,}):\/\/(.+)(:[0-9]+)?`
+const pattConn string = `^([a-z]{3,}):\/\/([^:]+):?([0-9]+)?$`
 
 func logDebug(msg interface{}) {
 	if *debug {
