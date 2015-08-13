@@ -30,8 +30,8 @@ waitforit -full-connection=tcp://google.com:90 -timeout=20 -debug
 
 ## Development
 
-Running with `Docker` and `Fig`:
+Running with `Docker` and `Compose`:
 
 ```bash
-fig run --rm local
+docker-compose run --rm local
 ```
