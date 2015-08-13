@@ -65,7 +65,7 @@ func pingTCP(conn *Connection, timeoutSeconds int) error {
 	logDebug("Dial adress: " + address)
 
 	for {
-		_, err := net.Dial(conn.Type, address)
+		_, err := net.DialTimeout(conn.Type, address, time.Second)
 		logDebug("ping TCP")
 
 		if err == nil {
