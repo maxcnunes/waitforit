@@ -35,3 +35,7 @@ Running with `Docker` and `Compose`:
 ```bash
 docker-compose run --rm local
 ```
+
+```bash
+docker-compose run --rm local go run src/waitforit/main.go -h
+```
