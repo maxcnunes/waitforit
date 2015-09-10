@@ -55,6 +55,10 @@ func buildConn(host string, port int, fullConn string) *Connection {
 		conn.Type = "tcp"
 	}
 
+	if conn.Scheme == "https" {
+		conn.Port = 443
+	}
+
 	return conn
 }
 
