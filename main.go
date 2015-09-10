@@ -119,7 +119,7 @@ func main() {
 		log.Fatal("Invalid connection")
 	}
 
-	logDebug("Waiting "+ strconv.Itoa(*timeout) + " seconds")
+	logDebug("Waiting " + strconv.Itoa(*timeout) + " seconds")
 	if err := pingTCP(conn, *timeout); err != nil {
 		log.Fatal(err)
 	}
