@@ -1,6 +1,6 @@
 # wait for it
 
-Wait until a port become available in a specific host.
+Wait until an address become available.
 
 ![](http://24.media.tumblr.com/tumblr_m3x648wxbj1ru99qvo1_500.png)
 
