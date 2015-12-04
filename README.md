@@ -16,6 +16,7 @@ Wait until a port become available in a specific host.
 - **-port**: Port to connect (default 80)
 - **-timeout**: Time to wait until port become available
 - **-debug**: Enable debug
+- **-v**: Show the current version
 
 
 ### Example
