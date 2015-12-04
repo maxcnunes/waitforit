@@ -14,7 +14,8 @@ import (
 
 var debug *bool
 
-const pattConn string = `^([a-z]{3,}):\/\/([^:]+):?([0-9]+)?$`
+const regexAddressConn string = `^([a-z]{3,}):\/\/([^:]+):?([0-9]+)?$`
+const regexPathAddressConn string = `^([^\/]+)(\/?.*)$`
 
 func logDebug(msg interface{}) {
 	if *debug {
@@ -28,6 +29,7 @@ type Connection struct {
 	Scheme string
 	Port   int
 	Host   string
+	Path   string
 }
 
 func buildConn(host string, port int, fullConn string) *Connection {
@@ -39,7 +41,7 @@ func buildConn(host string, port int, fullConn string) *Connection {
 		return nil
 	}
 
-	res := regexp.MustCompile(pattConn).FindAllStringSubmatch(fullConn, -1)[0]
+	res := regexp.MustCompile(regexAddressConn).FindAllStringSubmatch(fullConn, -1)[0]
 	if len(res) != 4 {
 		return nil
 	}
@@ -49,7 +51,14 @@ func buildConn(host string, port int, fullConn string) *Connection {
 		port = 80
 	}
 
-	conn := &Connection{Type: res[1], Host: res[2], Port: port}
+	hostAndPath := regexp.MustCompile(regexPathAddressConn).FindAllStringSubmatch(res[2], -1)[0]
+	conn := &Connection{
+		Type: res[1],
+		Port: port,
+		Host: hostAndPath[1],
+		Path: hostAndPath[2],
+	}
+
 	if conn.Type != "tcp" {
 		conn.Scheme = conn.Type
 		conn.Type = "tcp"
@@ -90,7 +99,7 @@ func pingTCP(conn *Connection, timeoutSeconds int) error {
 func pingHTTP(conn *Connection, timeoutSeconds int) error {
 	timeout := time.Duration(timeoutSeconds) * time.Second
 	start := time.Now()
-	address := fmt.Sprintf("%s://%s:%d", conn.Scheme, conn.Host, conn.Port)
+	address := fmt.Sprintf("%s://%s:%d%s", conn.Scheme, conn.Host, conn.Port, conn.Path)
 	logDebug("HTTP adress: " + address)
 
 	for {
