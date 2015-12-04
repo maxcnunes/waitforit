@@ -114,9 +114,15 @@ func main() {
 	host := flag.String("host", "", "host to connect")
 	port := flag.Int("port", 80, "port to connect")
 	timeout := flag.Int("timeout", 10, "time to wait until port become available")
+	version := flag.Bool("v", false, "show the current version")
 	debug = flag.Bool("debug", false, "enable debug")
 
 	flag.Parse()
+
+	if *version {
+		fmt.Println("waitforit version 1.2.2")
+		return
+	}
 
 	conn := buildConn(*host, *port, *fullConn)
 	if conn == nil {
