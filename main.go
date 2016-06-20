@@ -75,7 +75,7 @@ func pingTCP(conn *Connection, timeoutSeconds int) error {
 	timeout := time.Duration(timeoutSeconds) * time.Second
 	start := time.Now()
 	address := fmt.Sprintf("%s:%d", conn.Host, conn.Port)
-	logDebug("Dial adress: " + address)
+	logDebug("Dial address: " + address)
 
 	for {
 		_, err := net.DialTimeout(conn.Type, address, time.Second)
@@ -100,7 +100,7 @@ func pingHTTP(conn *Connection, timeoutSeconds int) error {
 	timeout := time.Duration(timeoutSeconds) * time.Second
 	start := time.Now()
 	address := fmt.Sprintf("%s://%s:%d%s", conn.Scheme, conn.Host, conn.Port, conn.Path)
-	logDebug("HTTP adress: " + address)
+	logDebug("HTTP address: " + address)
 
 	for {
 		resp, err := http.Get(address)
