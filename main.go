@@ -129,7 +129,7 @@ func main() {
 	flag.Parse()
 
 	if *version {
-		fmt.Println("waitforit version 1.3.0")
+		fmt.Println("waitforit version 1.3.1")
 		return
 	}
 
