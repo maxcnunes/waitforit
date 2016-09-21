@@ -104,7 +104,10 @@ func pingHTTP(conn *Connection, timeoutSeconds int) error {
 
 	for {
 		resp, err := http.Get(address)
-		logDebug("ping HTTP " + resp.Status)
+
+		if resp != nil {
+			logDebug("ping HTTP " + resp.Status)
+		}
 
 		if err == nil && resp.StatusCode < http.StatusInternalServerError {
 			return nil
