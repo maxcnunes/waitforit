@@ -21,6 +21,8 @@ Wait until an address become available.
 
 ### Example
 
+#### Running
+
 ```bash
 waitforit -host=google.com -port=90 -timeout=20 -debug
 
@@ -29,6 +31,16 @@ waitforit -full-connection=tcp://google.com:90 -timeout=20 -debug
 waitforit -full-connection=http://google.com -timeout=20 -debug
 
 waitforit -full-connection=http://google.com:90 -timeout=20 -debug
+```
+
+#### Installing with a Dockerfile
+
+```
+FROM node:6.5.0
+
+ENV WAITFORIT_VERSION="v1.3.1"
+RUN wget -q -O /usr/local/bin/waitforit https://github.com/maxcnunes/waitforit/releases/download/$WAITFORIT_VERSION/waitforit-linux_amd64 \
+    && chmod +x /usr/local/bin/waitforit
 ```
 
 ## Development
