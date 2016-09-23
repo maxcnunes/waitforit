@@ -35,12 +35,33 @@ waitforit -full-connection=http://google.com:90 -timeout=20 -debug
 
 #### Installing with a Dockerfile
 
+##### Using curl
+
+```
+FROM node:6.5.0
+
+ENV WAITFORIT_VERSION="v1.3.1"
+RUN curl -o /usr/local/bin/waitforit -sSL https://github.com/maxcnunes/waitforit/releases/download/$WAITFORIT_VERSION/waitforit-linux_amd64 && \
+    chmod +x /usr/local/bin/waitforit
+```
+
+##### Using wget
+
 ```
 FROM node:6.5.0
 
 ENV WAITFORIT_VERSION="v1.3.1"
 RUN wget -q -O /usr/local/bin/waitforit https://github.com/maxcnunes/waitforit/releases/download/$WAITFORIT_VERSION/waitforit-linux_amd64 \
     && chmod +x /usr/local/bin/waitforit
+```
+
+##### Using COPY (from local file system)
+
+```
+FROM node:6.5.0
+
+COPY waitforit-linux_amd64 /usr/local/bin/waitforit
+RUN chmod +x /usr/local/bin/waitforit
 ```
 
 ## Development
