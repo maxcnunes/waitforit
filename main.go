@@ -12,6 +12,8 @@ import (
 	"time"
 )
 
+// VERSION is definded during the build
+var VERSION string
 var debug *bool
 
 const regexAddressConn string = `^([a-z]{3,}):\/\/([^:]+):?([0-9]+)?$`
@@ -126,13 +128,13 @@ func main() {
 	host := flag.String("host", "", "host to connect")
 	port := flag.Int("port", 80, "port to connect")
 	timeout := flag.Int("timeout", 10, "time to wait until port become available")
-	version := flag.Bool("v", false, "show the current version")
+	printVersion := flag.Bool("v", false, "show the current version")
 	debug = flag.Bool("debug", false, "enable debug")
 
 	flag.Parse()
 
-	if *version {
-		fmt.Println("waitforit version 1.3.2")
+	if *printVersion {
+		fmt.Println("waitforit version " + VERSION)
 		return
 	}
 
