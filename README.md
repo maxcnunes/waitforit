@@ -17,6 +17,7 @@ Wait until an address become available.
 - **-timeout**: Time to wait until port become available
 - **-debug**: Enable debug
 - **-v**: Show the current version
+- **-file**: Path to the JSON file with the configs
 
 
 ### Example
@@ -31,6 +32,32 @@ waitforit -full-connection=tcp://google.com:90 -timeout=20 -debug
 waitforit -full-connection=http://google.com -timeout=20 -debug
 
 waitforit -full-connection=http://google.com:90 -timeout=20 -debug
+```
+
+#### Using with config file
+
+Create a JSON file describing the hosts you would like to wait for.
+
+Example JSON:
+```json
+{
+  "configs": [
+    {
+      "host": "google.com",
+      "port": 80,
+      "timeout": 20
+    },
+    {
+      "host": "google.com",
+      "port": 443,
+      "timeout": 40
+    }
+  ]
+}
+```
+
+```bash
+waitforit -file=./config.json
 ```
 
 #### Installing with a Dockerfile
