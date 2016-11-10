@@ -40,7 +40,7 @@ func pingHTTP(conn *Connection, timeoutSeconds int) error {
 		resp, err := http.Get(address)
 
 		if resp != nil {
-			logDebug("ping HTTP " + resp.Status)
+			logDebug("ping HTTP " + address + " " + resp.Status)
 		}
 
 		if err == nil && resp.StatusCode < http.StatusInternalServerError {
@@ -63,14 +63,14 @@ func pingTCP(conn *Connection, timeoutSeconds int) error {
 
 	for {
 		_, err := net.DialTimeout(conn.Type, address, time.Second)
-		logDebug("ping TCP")
+		logDebug("ping TCP: " + address)
 
 		if err == nil {
-			logDebug("Up")
+			logDebug("Up: " + address)
 			return nil
 		}
 
-		logDebug("Down")
+		logDebug("Down: " + address)
 		logDebug(err)
 		if time.Since(start) > timeout {
 			return err
