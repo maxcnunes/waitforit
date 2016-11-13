@@ -19,7 +19,10 @@ type Connection struct {
 	Path   string
 }
 
-func buildConn(host string, port int, fullConn string) *Connection {
+// BuildConn build a connection structure.
+// This connection data can later be used as a common structure
+// by the functions that will check if the target is available.
+func BuildConn(host string, port int, fullConn string) *Connection {
 	if host != "" {
 		return &Connection{Type: "tcp", Host: host, Port: port}
 	}

@@ -39,7 +39,7 @@ func main() {
 		return
 	}
 
-	conn := buildConn(*host, *port, *fullConn)
+	conn := BuildConn(*host, *port, *fullConn)
 	if conn == nil {
 		log.Fatal("Invalid connection")
 	}

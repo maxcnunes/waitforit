@@ -21,7 +21,7 @@ type fileConfig struct {
 func handleFileConfig(config fileConfig) error {
 	ch := make(chan error)
 	for _, conn := range config.Configs {
-		connection := buildConn(conn.Host, conn.Port, conn.ConnectionString)
+		connection := BuildConn(conn.Host, conn.Port, conn.ConnectionString)
 		go parallelDial(connection, conn.Timeout, ch)
 	}
 	for i := 0; i < len(config.Configs); i++ {
