@@ -46,7 +46,9 @@ func (s *Server) Close() (err error) {
 			s.server.Close()
 		}
 	} else {
-		err = s.listener.Close()
+		if s.listener != nil {
+			err = s.listener.Close()
+		}
 	}
 	return err
 }
@@ -115,7 +117,7 @@ func TestBuildConn(t *testing.T) {
 	}
 }
 
-func TestDial(t *testing.T) {
+func TestDialConn(t *testing.T) {
 	testCases := []struct {
 		title         string
 		conn          Connection
@@ -197,7 +199,7 @@ func TestDial(t *testing.T) {
 				}()
 			}
 
-			err = Dial(&v.conn, defaultTimeout)
+			err = DialConn(&v.conn, defaultTimeout)
 			if err != nil && v.finishOk {
 				t.Errorf("Expected to connect successfully %#v. But got error %v.", v.conn, err)
 				return
@@ -205,6 +207,112 @@ func TestDial(t *testing.T) {
 
 			if err == nil && !v.finishOk {
 				t.Errorf("Expected to not connect successfully %#v.", v.conn)
+			}
+		})
+	}
+}
+
+func TestDialConfigs(t *testing.T) {
+	type testItem struct {
+		conf          Config
+		allowStart    bool
+		openConnAfter int
+		finishOk      bool
+		serverHanlder http.Handler
+	}
+	testCases := []struct {
+		title string
+		items []testItem
+	}{
+		{
+			"Should successfully check a single connection.",
+			[]testItem{
+				{
+					Config{Port: 8080, Host: "localhost", Timeout: 5},
+					true,
+					0,
+					true,
+					nil,
+				},
+			},
+		},
+		{
+			"Should successfully check all connections.",
+			[]testItem{
+				{
+					Config{Port: 8080, Host: "localhost", Timeout: 5},
+					true,
+					0,
+					true,
+					nil,
+				},
+				{
+					Config{ConnectionString: "http://localhost:8081", Timeout: 5},
+					true,
+					0,
+					true,
+					nil,
+				},
+			},
+		},
+		{
+			"Should fail when at least a single connection is not available.",
+			[]testItem{
+				{
+					Config{Port: 8080, Host: "localhost", Timeout: 5},
+					true,
+					0,
+					true,
+					nil,
+				},
+				{
+					Config{Port: 8081, Host: "localhost", Timeout: 5},
+					false,
+					0,
+					false,
+					nil,
+				},
+			},
+		},
+	}
+
+	for _, v := range testCases {
+		t.Run(v.title, func(t *testing.T) {
+			confs := []Config{}
+			finishAllOk := true
+
+			for _, item := range v.items {
+				confs = append(confs, item.conf)
+				if finishAllOk && !item.finishOk {
+					finishAllOk = false
+				}
+
+				conn := BuildConn(item.conf.Host, item.conf.Port, item.conf.ConnectionString)
+
+				s := NewServer(conn, item.serverHanlder)
+				defer s.Close()
+
+				if item.allowStart {
+					go func() {
+						if item.openConnAfter > 0 {
+							time.Sleep(time.Duration(item.openConnAfter) * time.Second)
+						}
+
+						if err := s.Start(); err != nil {
+							t.Error(err)
+						}
+					}()
+				}
+			}
+
+			err := DialConfigs(confs)
+			if err != nil && finishAllOk {
+				t.Errorf("Expected to connect successfully %#v. But got error %v.", confs, err)
+				return
+			}
+
+			if err == nil && !finishAllOk {
+				t.Errorf("Expected to not connect successfully %#v.", confs)
 			}
 		})
 	}

@@ -9,8 +9,27 @@ import (
 	"time"
 )
 
-// Dial check if the connection is available
-func Dial(conn *Connection, timeoutSeconds int) error {
+// DialConfigs dial multiple connections at same time
+func DialConfigs(confs []Config) error {
+	ch := make(chan error)
+	for _, config := range confs {
+		go func(conf Config) {
+			conn := BuildConn(conf.Host, conf.Port, conf.ConnectionString)
+			ch <- DialConn(conn, conf.Timeout)
+		}(config)
+	}
+
+	for i := 0; i < len(confs); i++ {
+		if err := <-ch; err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// DialConn check if the connection is available
+func DialConn(conn *Connection, timeoutSeconds int) error {
 	logDebug("Waiting " + strconv.Itoa(timeoutSeconds) + " seconds")
 	if err := pingTCP(conn, timeoutSeconds); err != nil {
 		return err
@@ -24,11 +43,6 @@ func Dial(conn *Connection, timeoutSeconds int) error {
 		return err
 	}
 	return nil
-}
-
-func parallelDial(conn *Connection, timeoutSeconds int, ch chan error) {
-	err := Dial(conn, timeoutSeconds)
-	ch <- err
 }
 
 func pingHTTP(conn *Connection, timeoutSeconds int) error {
