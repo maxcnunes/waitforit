@@ -9,7 +9,8 @@ import (
 	"time"
 )
 
-func dial(conn *Connection, timeoutSeconds int) error {
+// Dial check if the connection is available
+func Dial(conn *Connection, timeoutSeconds int) error {
 	logDebug("Waiting " + strconv.Itoa(timeoutSeconds) + " seconds")
 	if err := pingTCP(conn, timeoutSeconds); err != nil {
 		return err
@@ -26,7 +27,7 @@ func dial(conn *Connection, timeoutSeconds int) error {
 }
 
 func parallelDial(conn *Connection, timeoutSeconds int, ch chan error) {
-	err := dial(conn, timeoutSeconds)
+	err := Dial(conn, timeoutSeconds)
 	ch <- err
 }
 

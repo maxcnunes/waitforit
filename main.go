@@ -11,9 +11,9 @@ var VERSION string
 var debug *bool
 
 func logDebug(msg interface{}) {
-	if *debug {
-		log.Print(msg)
-	}
+	// if *debug {
+	// 	log.Print(msg)
+	// }
 }
 
 func main() {
@@ -44,7 +44,7 @@ func main() {
 		log.Fatal("Invalid connection")
 	}
 
-	if err := dial(conn, *timeout); err != nil {
+	if err := Dial(conn, *timeout); err != nil {
 		log.Fatal(err)
 	}
 }
