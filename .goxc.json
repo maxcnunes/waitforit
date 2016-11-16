@@ -3,8 +3,8 @@
 	"Tasks": [
 		"xc"
 	],
-	"BuildConstraints": "linux, windows, darwin",
-	"PackageVersion": "1.4.0",
+	"BuildConstraints": "linux,amd64 windows,amd64 darwin,amd64",
+	"PackageVersion": "2.0.0",
 	"TaskSettings": {
 		"xc": {
 			"GOARM": "7"
