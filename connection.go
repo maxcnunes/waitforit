@@ -7,8 +7,6 @@ import (
 
 const regexAddressConn string = `^([a-z]{3,}):\/\/([^:]+):?([0-9]+)?$`
 const regexPathAddressConn string = `^([^\/]+)(\/?.*)$`
-const tcp = "tcp"
-const https = "https"
 
 // Connection data
 type Connection struct {
@@ -19,7 +17,10 @@ type Connection struct {
 	Path   string
 }
 
-func buildConn(host string, port int, fullConn string) *Connection {
+// BuildConn build a connection structure.
+// This connection data can later be used as a common structure
+// by the functions that will check if the target is available.
+func BuildConn(host string, port int, fullConn string) *Connection {
 	if host != "" {
 		return &Connection{Type: "tcp", Host: host, Port: port}
 	}
@@ -28,10 +29,12 @@ func buildConn(host string, port int, fullConn string) *Connection {
 		return nil
 	}
 
-	res := regexp.MustCompile(regexAddressConn).FindAllStringSubmatch(fullConn, -1)[0]
-	if len(res) != 4 {
+	match := regexp.MustCompile(regexAddressConn).FindAllStringSubmatch(fullConn, -1)
+	if len(match) < 1 {
 		return nil
 	}
+
+	res := match[0]
 
 	port, err := strconv.Atoi(res[3])
 	if err != nil {
@@ -46,12 +49,12 @@ func buildConn(host string, port int, fullConn string) *Connection {
 		Path: hostAndPath[2],
 	}
 
-	if conn.Type != tcp {
+	if conn.Type != "tcp" {
 		conn.Scheme = conn.Type
-		conn.Type = tcp
+		conn.Type = "tcp"
 	}
 
-	if conn.Scheme == https {
+	if conn.Scheme == "https" {
 		conn.Port = 443
 	}
 

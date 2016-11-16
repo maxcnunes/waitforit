@@ -1,5 +1,8 @@
 # wait for it
 
+[![Build Status](https://travis-ci.org/maxcnunes/waitforit.svg?branch=master)](https://travis-ci.org/maxcnunes/waitforit)
+[![Coverage Status](https://coveralls.io/repos/github/maxcnunes/waitforit/badge.svg?branch=master)](https://coveralls.io/github/maxcnunes/waitforit?branch=master)
+
 Wait until an address become available.
 
 ![](http://24.media.tumblr.com/tumblr_m3x648wxbj1ru99qvo1_500.png)
@@ -48,8 +51,7 @@ Example JSON:
       "timeout": 20
     },
     {
-      "host": "google.com",
-      "port": 443,
+      "fullConnection": "http://google.com:80",
       "timeout": 40
     }
   ]

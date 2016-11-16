@@ -9,9 +9,34 @@ import (
 	"time"
 )
 
-func dial(conn *Connection, timeoutSeconds int) error {
-	logDebug("Waiting " + strconv.Itoa(timeoutSeconds) + " seconds")
-	if err := pingTCP(conn, timeoutSeconds); err != nil {
+// DialConfigs dial multiple connections at same time
+func DialConfigs(confs []Config, print func(a ...interface{})) error {
+	ch := make(chan error)
+	for _, config := range confs {
+		go func(conf Config) {
+			conn := BuildConn(conf.Host, conf.Port, conf.FullConn)
+			if conn == nil {
+				ch <- fmt.Errorf("Invalid connection %#v", conf)
+				return
+			}
+
+			ch <- DialConn(conn, conf.Timeout, print)
+		}(config)
+	}
+
+	for i := 0; i < len(confs); i++ {
+		if err := <-ch; err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// DialConn check if the connection is available
+func DialConn(conn *Connection, timeoutSeconds int, print func(a ...interface{})) error {
+	print("Waiting " + strconv.Itoa(timeoutSeconds) + " seconds")
+	if err := pingTCP(conn, timeoutSeconds, print); err != nil {
 		return err
 	}
 
@@ -19,28 +44,20 @@ func dial(conn *Connection, timeoutSeconds int) error {
 		return nil
 	}
 
-	if err := pingHTTP(conn, timeoutSeconds); err != nil {
-		return err
-	}
-	return nil
+	return pingHTTP(conn, timeoutSeconds, print)
 }
 
-func parallelDial(conn *Connection, timeoutSeconds int, ch chan error) {
-	err := dial(conn, timeoutSeconds)
-	ch <- err
-}
-
-func pingHTTP(conn *Connection, timeoutSeconds int) error {
+func pingHTTP(conn *Connection, timeoutSeconds int, print func(a ...interface{})) error {
 	timeout := time.Duration(timeoutSeconds) * time.Second
 	start := time.Now()
 	address := fmt.Sprintf("%s://%s:%d%s", conn.Scheme, conn.Host, conn.Port, conn.Path)
-	logDebug("HTTP address: " + address)
+	print("HTTP address: " + address)
 
 	for {
 		resp, err := http.Get(address)
 
 		if resp != nil {
-			logDebug("ping HTTP " + address + " " + resp.Status)
+			print("ping HTTP " + address + " " + resp.Status)
 		}
 
 		if err == nil && resp.StatusCode < http.StatusInternalServerError {
@@ -55,23 +72,23 @@ func pingHTTP(conn *Connection, timeoutSeconds int) error {
 	}
 }
 
-func pingTCP(conn *Connection, timeoutSeconds int) error {
+func pingTCP(conn *Connection, timeoutSeconds int, print func(a ...interface{})) error {
 	timeout := time.Duration(timeoutSeconds) * time.Second
 	start := time.Now()
 	address := fmt.Sprintf("%s:%d", conn.Host, conn.Port)
-	logDebug("Dial address: " + address)
+	print("Dial address: " + address)
 
 	for {
 		_, err := net.DialTimeout(conn.Type, address, time.Second)
-		logDebug("ping TCP: " + address)
+		print("ping TCP: " + address)
 
 		if err == nil {
-			logDebug("Up: " + address)
+			print("Up: " + address)
 			return nil
 		}
 
-		logDebug("Down: " + address)
-		logDebug(err)
+		print("Down: " + address)
+		print(err)
 		if time.Since(start) > timeout {
 			return err
 		}
