@@ -14,10 +14,10 @@ var debug *bool
 
 // Config describes the connection config
 type Config struct {
-	Host             string `json:"host"`
-	Port             int    `json:"port"`
-	ConnectionString string `json:"connectionString"`
-	Timeout          int    `json:"timeout"`
+	Host     string `json:"host"`
+	Port     int    `json:"port"`
+	FullConn string `json:"fullConnection"`
+	Timeout  int    `json:"timeout"`
 }
 
 // FileConfig describes the structure of the config json file
@@ -57,10 +57,10 @@ func main() {
 		fc = FileConfig{
 			Configs: []Config{
 				{
-					Host:             *host,
-					Port:             *port,
-					ConnectionString: *fullConn,
-					Timeout:          *timeout,
+					Host:     *host,
+					Port:     *port,
+					FullConn: *fullConn,
+					Timeout:  *timeout,
 				},
 			},
 		}

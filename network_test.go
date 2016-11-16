@@ -186,7 +186,7 @@ func TestDialConfigs(t *testing.T) {
 					nil,
 				},
 				{
-					Config{ConnectionString: "http://localhost:8081", Timeout: 5},
+					Config{FullConn: "http://localhost:8081", Timeout: 5},
 					true,
 					0,
 					true,
@@ -226,7 +226,7 @@ func TestDialConfigs(t *testing.T) {
 					finishAllOk = false
 				}
 
-				conn := BuildConn(item.conf.Host, item.conf.Port, item.conf.ConnectionString)
+				conn := BuildConn(item.conf.Host, item.conf.Port, item.conf.FullConn)
 
 				s := NewServer(conn, item.serverHanlder)
 				defer s.Close()
