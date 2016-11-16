@@ -12,12 +12,6 @@ import (
 var VERSION string
 var debug *bool
 
-func logDebug(msg interface{}) {
-	// if *debug {
-	// 	log.Print(msg)
-	// }
-}
-
 // Config describes the connection config
 type Config struct {
 	Host             string `json:"host"`
@@ -47,6 +41,13 @@ func main() {
 		return
 	}
 
+	print := func(a ...interface{}) {}
+	if *debug {
+		print = func(a ...interface{}) {
+			log.Print(a...)
+		}
+	}
+
 	var fc FileConfig
 	if *file != "" {
 		if err := loadFileConfig(*file, &fc); err != nil {
@@ -65,7 +66,7 @@ func main() {
 		}
 	}
 
-	if err := DialConfigs(fc.Configs); err != nil {
+	if err := DialConfigs(fc.Configs, print); err != nil {
 		log.Fatal(err)
 	}
 }

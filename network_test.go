@@ -53,6 +53,8 @@ func (s *Server) Close() (err error) {
 }
 
 func TestDialConn(t *testing.T) {
+	print := func(a ...interface{}) {}
+
 	testCases := []struct {
 		title         string
 		conn          Connection
@@ -134,7 +136,7 @@ func TestDialConn(t *testing.T) {
 				}()
 			}
 
-			err = DialConn(&v.conn, defaultTimeout)
+			err = DialConn(&v.conn, defaultTimeout, print)
 			if err != nil && v.finishOk {
 				t.Errorf("Expected to connect successfully %#v. But got error %v.", v.conn, err)
 				return
@@ -148,6 +150,8 @@ func TestDialConn(t *testing.T) {
 }
 
 func TestDialConfigs(t *testing.T) {
+	print := func(a ...interface{}) {}
+
 	type testItem struct {
 		conf          Config
 		allowStart    bool
@@ -240,7 +244,7 @@ func TestDialConfigs(t *testing.T) {
 				}
 			}
 
-			err := DialConfigs(confs)
+			err := DialConfigs(confs, print)
 			if err != nil && finishAllOk {
 				t.Errorf("Expected to connect successfully %#v. But got error %v.", confs, err)
 				return
