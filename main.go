@@ -10,7 +10,6 @@ import (
 
 // VERSION is definded during the build
 var VERSION string
-var debug *bool
 
 // Config describes the connection config
 type Config struct {
@@ -31,7 +30,7 @@ func main() {
 	port := flag.Int("port", 80, "port to connect")
 	timeout := flag.Int("timeout", 10, "time to wait until port become available")
 	printVersion := flag.Bool("v", false, "show the current version")
-	debug = flag.Bool("debug", false, "enable debug")
+	debug := flag.Bool("debug", false, "enable debug")
 	file := flag.String("file", "", "path of json file to read configs from")
 
 	flag.Parse()
