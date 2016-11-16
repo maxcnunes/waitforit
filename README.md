@@ -51,8 +51,7 @@ Example JSON:
       "timeout": 20
     },
     {
-      "host": "google.com",
-      "port": 443,
+      "fullConnection": "http://google.com:80",
       "timeout": 40
     }
   ]
