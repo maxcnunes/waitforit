@@ -25,6 +25,10 @@ func NewServer(c *Connection, h http.Handler) *Server {
 }
 
 func (s *Server) Start() (err error) {
+	if s.conn == nil {
+		return nil
+	}
+
 	addr := net.JoinHostPort(s.conn.Host, strconv.Itoa(s.conn.Port))
 	s.listener, err = net.Listen(s.conn.Type, addr)
 
@@ -40,6 +44,10 @@ func (s *Server) Start() (err error) {
 }
 
 func (s *Server) Close() (err error) {
+	if s.conn == nil {
+		return nil
+	}
+
 	if s.conn.Scheme == "http" {
 		if s.server != nil {
 			s.server.Close()
@@ -206,6 +214,25 @@ func TestDialConfigs(t *testing.T) {
 				},
 				{
 					Config{Port: 8081, Host: "localhost", Timeout: 5},
+					false,
+					0,
+					false,
+					nil,
+				},
+			},
+		},
+		{
+			"Should fail when at least a single connection is not valid.",
+			[]testItem{
+				{
+					Config{Port: 8080, Host: "localhost", Timeout: 5},
+					true,
+					0,
+					true,
+					nil,
+				},
+				{
+					Config{FullConn: "http:/localhost;8081", Timeout: 5},
 					false,
 					0,
 					false,
