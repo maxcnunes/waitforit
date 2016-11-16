@@ -15,6 +15,11 @@ func DialConfigs(confs []Config, print func(a ...interface{})) error {
 	for _, config := range confs {
 		go func(conf Config) {
 			conn := BuildConn(conf.Host, conf.Port, conf.ConnectionString)
+			if conn == nil {
+				ch <- fmt.Errorf("Invalid connection %#v", conf)
+				return
+			}
+
 			ch <- DialConn(conn, conf.Timeout, print)
 		}(config)
 	}

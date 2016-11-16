@@ -29,10 +29,12 @@ func BuildConn(host string, port int, fullConn string) *Connection {
 		return nil
 	}
 
-	res := regexp.MustCompile(regexAddressConn).FindAllStringSubmatch(fullConn, -1)[0]
-	if len(res) != 4 {
+	match := regexp.MustCompile(regexAddressConn).FindAllStringSubmatch(fullConn, -1)
+	if len(match) < 1 {
 		return nil
 	}
+
+	res := match[0]
 
 	port, err := strconv.Atoi(res[3])
 	if err != nil {
