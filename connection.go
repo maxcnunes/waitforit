@@ -7,8 +7,6 @@ import (
 
 const regexAddressConn string = `^([a-z]{3,}):\/\/([^:]+):?([0-9]+)?$`
 const regexPathAddressConn string = `^([^\/]+)(\/?.*)$`
-const tcp = "tcp"
-const https = "https"
 
 // Connection data
 type Connection struct {
@@ -49,12 +47,12 @@ func BuildConn(host string, port int, fullConn string) *Connection {
 		Path: hostAndPath[2],
 	}
 
-	if conn.Type != tcp {
+	if conn.Type != "tcp" {
 		conn.Scheme = conn.Type
-		conn.Type = tcp
+		conn.Type = "tcp"
 	}
 
-	if conn.Scheme == https {
+	if conn.Scheme == "https" {
 		conn.Port = 443
 	}
 

@@ -39,10 +39,7 @@ func DialConn(conn *Connection, timeoutSeconds int) error {
 		return nil
 	}
 
-	if err := pingHTTP(conn, timeoutSeconds); err != nil {
-		return err
-	}
-	return nil
+	return pingHTTP(conn, timeoutSeconds)
 }
 
 func pingHTTP(conn *Connection, timeoutSeconds int) error {
