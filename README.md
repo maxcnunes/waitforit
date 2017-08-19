@@ -22,6 +22,7 @@ Wait until an address become available.
 - **-v**: Show the current version
 - **-file**: Path to the JSON file with the configs
 
+All additional parameters will be executed on the os when the address became available.
 
 ### Example
 
@@ -35,6 +36,8 @@ waitforit -full-connection=tcp://google.com:90 -timeout=20 -debug
 waitforit -full-connection=http://google.com -timeout=20 -debug
 
 waitforit -full-connection=http://google.com:90 -timeout=20 -debug
+
+waitforit -full-connection=http://google.com -timeout=20 -debug printf "Google Works\!"
 ```
 
 #### Using with config file

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 )
 
 // VERSION is definded during the build
@@ -25,6 +26,12 @@ type FileConfig struct {
 }
 
 func main() {
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage:\n\n  %s [options] [post-command]\n\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "The options are:\n\n")
+		flag.PrintDefaults()
+	}
+
 	fullConn := flag.String("full-connection", "", "full connection")
 	host := flag.String("host", "", "host to connect")
 	port := flag.Int("port", 80, "port to connect")
@@ -68,6 +75,24 @@ func main() {
 	if err := DialConfigs(fc.Configs, print); err != nil {
 		log.Fatal(err)
 	}
+
+	if err := runPostCommand(); err != nil {
+		os.Exit(1)
+	}
+}
+
+func runPostCommand() error {
+	args := flag.Args()
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	cmd := exec.Command(args[0], args[1:len(args)]...)
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
+
+	return cmd.Run()
 }
 
 func loadFileConfig(path string, fc *FileConfig) error {
