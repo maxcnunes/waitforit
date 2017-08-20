@@ -72,7 +72,12 @@ func TestBuildConn(t *testing.T) {
 	}
 
 	for _, v := range testCases {
-		conn := BuildConn(v.data.host, v.data.port, v.data.fullConn)
+		cfg := &Config{
+			Host:    v.data.host,
+			Port:    v.data.port,
+			Address: v.data.fullConn,
+		}
+		conn := BuildConn(cfg)
 		t.Run(v.title, func(t *testing.T) {
 			if !reflect.DeepEqual(conn, v.expected) {
 				t.Errorf("Expected to %#v to be deep equal %#v", conn, v.expected)
