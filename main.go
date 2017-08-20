@@ -33,7 +33,7 @@ func main() {
 		flag.PrintDefaults()
 	}
 
-	address := flag.String("address", "", "address")
+	address := flag.String("address", "", "address (e.g. http://google.com or tcp://mysql_ip:mysql_port)")
 	fullConn := flag.String("full-connection", "", "full connection (please use address instead)")
 	host := flag.String("host", "", "host to connect")
 	port := flag.Int("port", 80, "port to connect")

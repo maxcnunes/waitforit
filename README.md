@@ -14,14 +14,14 @@ Wait until an address become available.
 
 ### Options
 
-- **-address**: Address `<protocol/scheme>://<host>:<port>` (former **full-connection**)
-- **-host**: Host to connect
-- **-port**: Port to connect (default 80)
-- **-timeout**: Time to wait until the address become available
-- **-debug**: Enable debug
-- **-v**: Show the current version
-- **-file**: Path to the JSON file with the configs
-- **-- **: Execute a post command once the address became available
+- `-address`: Address (e.g. http://google.com or tcp://mysql_ip:mysql_port) - *former **full-connection***
+- `-host`: Host to connect
+- `-port`: Port to connect (default 80)
+- `-timeout`: Time to wait until the address become available
+- `-debug`: Enable debug
+- `-v`: Show the current version
+- `-file`: Path to the JSON file with the configs
+- `-- `: Execute a post command once the address became available
 
 > `full-connection` still working and won't be removed to not cause any API breaking change.
 > But please use `address` instead since it express the same thing in a simple way.
@@ -39,7 +39,7 @@ waitforit -address=http://google.com -timeout=20 -debug
 
 waitforit -address=http://google.com:90 -timeout=20 -debug
 
-waitforit -address=http://google.com -timeout=20 -debug -- echo "Google Works!"
+waitforit -address=http://google.com -timeout=20 -debug -- printf "Google Works\!"
 ```
 
 #### Using with config file
