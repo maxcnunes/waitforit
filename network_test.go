@@ -253,7 +253,7 @@ func TestDialConfigs(t *testing.T) {
 					finishAllOk = false
 				}
 
-				conn := BuildConn(item.conf.Host, item.conf.Port, item.conf.FullConn)
+				conn := BuildConn(&item.conf)
 
 				s := NewServer(conn, item.serverHanlder)
 				defer s.Close()

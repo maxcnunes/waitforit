@@ -16,6 +16,7 @@ var VERSION string
 type Config struct {
 	Host     string `json:"host"`
 	Port     int    `json:"port"`
+	Address  string `json:"address"`
 	FullConn string `json:"fullConnection"`
 	Timeout  int    `json:"timeout"`
 }
@@ -32,10 +33,11 @@ func main() {
 		flag.PrintDefaults()
 	}
 
-	fullConn := flag.String("full-connection", "", "full connection")
+	address := flag.String("address", "", "address (e.g. http://google.com or tcp://mysql_ip:mysql_port)")
+	fullConn := flag.String("full-connection", "", "full connection (please use address instead)")
 	host := flag.String("host", "", "host to connect")
 	port := flag.Int("port", 80, "port to connect")
-	timeout := flag.Int("timeout", 10, "time to wait until port become available")
+	timeout := flag.Int("timeout", 10, "time to wait until the address become available")
 	printVersion := flag.Bool("v", false, "show the current version")
 	debug := flag.Bool("debug", false, "enable debug")
 	file := flag.String("file", "", "path of json file to read configs from")
@@ -65,6 +67,7 @@ func main() {
 				{
 					Host:     *host,
 					Port:     *port,
+					Address:  *address,
 					FullConn: *fullConn,
 					Timeout:  *timeout,
 				},

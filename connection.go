@@ -20,16 +20,21 @@ type Connection struct {
 // BuildConn build a connection structure.
 // This connection data can later be used as a common structure
 // by the functions that will check if the target is available.
-func BuildConn(host string, port int, fullConn string) *Connection {
-	if host != "" {
-		return &Connection{Type: "tcp", Host: host, Port: port}
+func BuildConn(cfg *Config) *Connection {
+	if cfg.Host != "" {
+		return &Connection{Type: "tcp", Host: cfg.Host, Port: cfg.Port}
 	}
 
-	if fullConn == "" {
+	address := cfg.Address
+	if address == "" {
+		// compatibilty with old argument
+		address = cfg.FullConn
+	}
+	if address == "" {
 		return nil
 	}
 
-	match := regexp.MustCompile(regexAddressConn).FindAllStringSubmatch(fullConn, -1)
+	match := regexp.MustCompile(regexAddressConn).FindAllStringSubmatch(address, -1)
 	if len(match) < 1 {
 		return nil
 	}
