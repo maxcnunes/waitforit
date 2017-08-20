@@ -27,10 +27,6 @@ func BuildConn(cfg *Config) *Connection {
 
 	address := cfg.Address
 	if address == "" {
-		// compatibilty with old argument
-		address = cfg.FullConn
-	}
-	if address == "" {
 		return nil
 	}
 

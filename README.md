@@ -23,9 +23,6 @@ Wait until an address become available.
 - `-file`: Path to the JSON file with the configs
 - `-- `: Execute a post command once the address became available
 
-> `full-connection` still working and won't be removed to not cause any API breaking change.
-> But please use `address` instead since it express the same thing in a simple way.
-
 ### Example
 
 #### Running

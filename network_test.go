@@ -194,7 +194,7 @@ func TestDialConfigs(t *testing.T) {
 					nil,
 				},
 				{
-					Config{FullConn: "http://localhost:8081", Timeout: 5},
+					Config{Address: "http://localhost:8081", Timeout: 5},
 					true,
 					0,
 					true,
@@ -232,7 +232,7 @@ func TestDialConfigs(t *testing.T) {
 					nil,
 				},
 				{
-					Config{FullConn: "http:/localhost;8081", Timeout: 5},
+					Config{Address: "http:/localhost;8081", Timeout: 5},
 					false,
 					0,
 					false,

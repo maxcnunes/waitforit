@@ -14,11 +14,10 @@ var VERSION string
 
 // Config describes the connection config
 type Config struct {
-	Host     string `json:"host"`
-	Port     int    `json:"port"`
-	Address  string `json:"address"`
-	FullConn string `json:"fullConnection"`
-	Timeout  int    `json:"timeout"`
+	Host    string `json:"host"`
+	Port    int    `json:"port"`
+	Address string `json:"address"`
+	Timeout int    `json:"timeout"`
 }
 
 // FileConfig describes the structure of the config json file
@@ -34,7 +33,6 @@ func main() {
 	}
 
 	address := flag.String("address", "", "address (e.g. http://google.com or tcp://mysql_ip:mysql_port)")
-	fullConn := flag.String("full-connection", "", "full connection (please use address instead)")
 	host := flag.String("host", "", "host to connect")
 	port := flag.Int("port", 80, "port to connect")
 	timeout := flag.Int("timeout", 10, "time to wait until the address become available")
@@ -65,11 +63,10 @@ func main() {
 		fc = FileConfig{
 			Configs: []Config{
 				{
-					Host:     *host,
-					Port:     *port,
-					Address:  *address,
-					FullConn: *fullConn,
-					Timeout:  *timeout,
+					Host:    *host,
+					Port:    *port,
+					Address: *address,
+					Timeout: *timeout,
 				},
 			},
 		}
