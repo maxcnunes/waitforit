@@ -1,0 +1,13 @@
+{
+  "configs": [
+    {
+      "host": "google.com",
+      "port": 80,
+      "timeout": 20
+    },
+    {
+      "address": "http://google.com:80",
+      "timeout": 40
+    }
+  ]
+}
