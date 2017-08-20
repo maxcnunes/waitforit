@@ -97,6 +97,10 @@ RUN chmod +x /usr/local/bin/waitforit
 
 ## Development
 
+```bash
+make run
+```
+
 Running with `Docker` and `Compose`:
 
 ```bash
@@ -107,11 +111,14 @@ docker-compose run --rm local
 docker-compose run --rm local go run src/waitforit/main.go -h
 ```
 
+## Test
+
+```bash
+make test
+```
 
 ## Build
 
-Using [goxc](https://github.com/laher/goxc).
-
 ```bash
-goxc
+make build
 ```

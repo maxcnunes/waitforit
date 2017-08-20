@@ -12,3 +12,8 @@ insert_final_newline = true
 [*.go]
 indent_style = tab
 indent_size = 4
+
+; Make
+[Makefile]
+indent_style = tab
+indent_size = 4
