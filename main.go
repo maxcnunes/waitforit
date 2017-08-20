@@ -27,7 +27,7 @@ type FileConfig struct {
 
 func main() {
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage:\n\n  %s [options] [post-command]\n\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "Usage:\n\n  %s [options] [-- post-command]\n\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "The options are:\n\n")
 		flag.PrintDefaults()
 	}
@@ -82,13 +82,20 @@ func main() {
 }
 
 func runPostCommand() error {
-	args := flag.Args()
-
-	if len(args) == 0 {
+	extraArgs := flag.Args()
+	nExtraArgs := len(extraArgs)
+	if nExtraArgs == 0 {
 		return nil
 	}
 
-	cmd := exec.Command(args[0], args[1:len(args)]...)
+	// Ensure with explict argument "--" is enabling a post command
+	allArgs := os.Args
+	nAllArgs := len(allArgs)
+	if allArgs[nAllArgs-(nExtraArgs+1)] != "--" {
+		return nil
+	}
+
+	cmd := exec.Command(extraArgs[0], extraArgs[1:len(extraArgs)]...)
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 
