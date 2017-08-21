@@ -47,6 +47,12 @@ func main() {
 		return
 	}
 
+	if *address == "" && *host == "" && *file == "" {
+		fmt.Fprintf(os.Stderr, "Missing : address, host or file field\n")
+		flag.Usage()
+		return
+	}
+
 	print := func(a ...interface{}) {}
 	if *debug {
 		print = func(a ...interface{}) {
