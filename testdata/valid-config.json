@@ -8,6 +8,12 @@
     {
       "address": "http://google.com:80",
       "timeout": 40
+    },
+    {
+      "host": "yahoo.com",
+      "port": 8080,
+      "retry": 2000,
+      "timeout": 20
     }
   ]
 }
