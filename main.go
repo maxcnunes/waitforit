@@ -18,6 +18,7 @@ type Config struct {
 	Port    int    `json:"port"`
 	Address string `json:"address"`
 	Timeout int    `json:"timeout"`
+	Retry   int    `json:"retry"`
 }
 
 // FileConfig describes the structure of the config json file
@@ -35,7 +36,8 @@ func main() {
 	address := flag.String("address", "", "address (e.g. http://google.com or tcp://mysql_ip:mysql_port)")
 	host := flag.String("host", "", "host to connect")
 	port := flag.Int("port", 80, "port to connect")
-	timeout := flag.Int("timeout", 10, "time to wait until the address become available")
+	timeout := flag.Int("timeout", 10, "seconds to wait until the address become available")
+	retry := flag.Int("retry", 500, "milliseconds to wait between retries")
 	printVersion := flag.Bool("v", false, "show the current version")
 	debug := flag.Bool("debug", false, "enable debug")
 	file := flag.String("file", "", "path of json file to read configs from")
@@ -73,6 +75,7 @@ func main() {
 					Port:    *port,
 					Address: *address,
 					Timeout: *timeout,
+					Retry:   *retry,
 				},
 			},
 		}

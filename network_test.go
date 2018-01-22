@@ -126,6 +126,7 @@ func TestDialConn(t *testing.T) {
 	}
 
 	defaultTimeout := 5
+	defaultRetry := 500
 	for _, v := range testCases {
 		t.Run(v.title, func(t *testing.T) {
 			var err error
@@ -144,7 +145,7 @@ func TestDialConn(t *testing.T) {
 				}()
 			}
 
-			err = DialConn(&v.conn, defaultTimeout, print)
+			err = DialConn(&v.conn, defaultTimeout, defaultRetry, print)
 			if err != nil && v.finishOk {
 				t.Errorf("Expected to connect successfully %#v. But got error %v.", v.conn, err)
 				return

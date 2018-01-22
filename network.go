@@ -20,7 +20,7 @@ func DialConfigs(confs []Config, print func(a ...interface{})) error {
 				return
 			}
 
-			ch <- DialConn(conn, conf.Timeout, print)
+			ch <- DialConn(conn, conf.Timeout, conf.Retry, print)
 		}(config)
 	}
 
@@ -34,9 +34,9 @@ func DialConfigs(confs []Config, print func(a ...interface{})) error {
 }
 
 // DialConn check if the connection is available
-func DialConn(conn *Connection, timeoutSeconds int, print func(a ...interface{})) error {
+func DialConn(conn *Connection, timeoutSeconds int, retryMseconds int, print func(a ...interface{})) error {
 	print("Waiting " + strconv.Itoa(timeoutSeconds) + " seconds")
-	if err := pingTCP(conn, timeoutSeconds, print); err != nil {
+	if err := pingTCP(conn, timeoutSeconds, retryMseconds, print); err != nil {
 		return err
 	}
 
@@ -44,10 +44,10 @@ func DialConn(conn *Connection, timeoutSeconds int, print func(a ...interface{})
 		return nil
 	}
 
-	return pingHTTP(conn, timeoutSeconds, print)
+	return pingHTTP(conn, timeoutSeconds, retryMseconds, print)
 }
 
-func pingHTTP(conn *Connection, timeoutSeconds int, print func(a ...interface{})) error {
+func pingHTTP(conn *Connection, timeoutSeconds int, retryMseconds int, print func(a ...interface{})) error {
 	timeout := time.Duration(timeoutSeconds) * time.Second
 	start := time.Now()
 	address := fmt.Sprintf("%s://%s:%d%s", conn.Scheme, conn.Host, conn.Port, conn.Path)
@@ -68,11 +68,11 @@ func pingHTTP(conn *Connection, timeoutSeconds int, print func(a ...interface{})
 			return errors.New(resp.Status)
 		}
 
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(time.Duration(retryMseconds) * time.Millisecond)
 	}
 }
 
-func pingTCP(conn *Connection, timeoutSeconds int, print func(a ...interface{})) error {
+func pingTCP(conn *Connection, timeoutSeconds int, retryMseconds int, print func(a ...interface{})) error {
 	timeout := time.Duration(timeoutSeconds) * time.Second
 	start := time.Now()
 	address := fmt.Sprintf("%s:%d", conn.Host, conn.Port)
@@ -93,6 +93,6 @@ func pingTCP(conn *Connection, timeoutSeconds int, print func(a ...interface{}))
 			return err
 		}
 
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(time.Duration(retryMseconds) * time.Millisecond)
 	}
 }

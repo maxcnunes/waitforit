@@ -17,7 +17,8 @@ Wait until an address become available.
 - `-address`: Address (e.g. http://google.com or tcp://mysql_ip:mysql_port) - *former **full-connection***
 - `-host`: Host to connect
 - `-port`: Port to connect (default 80)
-- `-timeout`: Time to wait until the address become available
+- `-timeout`: Seconds to wait until the address become available
+- `-retry`: Milliseconds to wait between retries
 - `-debug`: Enable debug
 - `-v`: Show the current version
 - `-file`: Path to the JSON file with the configs
@@ -34,7 +35,7 @@ waitforit -address=tcp://google.com:90 -timeout=20 -debug
 
 waitforit -address=http://google.com -timeout=20 -debug
 
-waitforit -address=http://google.com:90 -timeout=20 -debug
+waitforit -address=http://google.com:90 -timeout=20 -retry=500 -debug
 
 waitforit -address=http://google.com -timeout=20 -debug -- printf "Google Works\!"
 ```
@@ -50,7 +51,8 @@ Example JSON:
     {
       "host": "google.com",
       "port": 80,
-      "timeout": 20
+      "timeout": 20,
+      "retry": 500
     },
     {
       "address": "http://google.com:80",
