@@ -55,6 +55,11 @@ func TestBuildConn(t *testing.T) {
 			&Connection{Type: "tcp", Scheme: "https", Port: 443, Host: "localhost", Path: ""},
 		},
 		{
+			"Should support fullConn to https with custom port",
+			input{fullConn: "https://localhost:444"},
+			&Connection{Type: "tcp", Scheme: "https", Port: 444, Host: "localhost", Path: ""},
+		},
+		{
 			"Should be able to create a http connection with a path through the fullConn",
 			input{fullConn: "https://localhost/cars"},
 			&Connection{Type: "tcp", Scheme: "https", Port: 443, Host: "localhost", Path: "/cars"},

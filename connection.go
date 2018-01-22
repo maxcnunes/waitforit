@@ -37,15 +37,9 @@ func BuildConn(cfg *Config) *Connection {
 
 	res := match[0]
 
-	port, err := strconv.Atoi(res[3])
-	if err != nil {
-		port = 80
-	}
-
 	hostAndPath := regexp.MustCompile(regexPathAddressConn).FindAllStringSubmatch(res[2], -1)[0]
 	conn := &Connection{
 		Type: res[1],
-		Port: port,
 		Host: hostAndPath[1],
 		Path: hostAndPath[2],
 	}
@@ -55,8 +49,15 @@ func BuildConn(cfg *Config) *Connection {
 		conn.Type = "tcp"
 	}
 
-	if conn.Scheme == "https" {
-		conn.Port = 443
+	// resolve port
+	if port, err := strconv.Atoi(res[3]); err != nil {
+		if conn.Scheme == "https" {
+			conn.Port = 443
+		} else {
+			conn.Port = 80
+		}
+	} else {
+		conn.Port = port
 	}
 
 	return conn
