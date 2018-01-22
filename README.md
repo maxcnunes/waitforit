@@ -18,7 +18,7 @@ Wait until an address become available.
 - `-host`: Host to connect
 - `-port`: Port to connect (default 80)
 - `-timeout`: Seconds to wait until the address become available
-- `-retry`: Milliseconds to wait between retries
+- `-retry`: Milliseconds to wait between retries (default 500)
 - `-debug`: Enable debug
 - `-v`: Show the current version
 - `-file`: Path to the JSON file with the configs
