@@ -72,54 +72,54 @@ func TestDialConn(t *testing.T) {
 		serverHanlder http.Handler
 	}{
 		{
-			"Should successfully check connection that is already available.",
-			Connection{Type: "tcp", Scheme: "", Port: 8080, Host: "localhost", Path: ""},
-			true,
-			0,
-			true,
-			nil,
+			title:         "Should successfully check connection that is already available.",
+			conn:          Connection{Type: "tcp", Scheme: "", Port: 8080, Host: "localhost", Path: ""},
+			allowStart:    true,
+			openConnAfter: 0,
+			finishOk:      true,
+			serverHanlder: nil,
 		},
 		{
-			"Should successfully check connection that open before reach the timeout.",
-			Connection{Type: "tcp", Scheme: "", Port: 8080, Host: "localhost", Path: ""},
-			true,
-			2,
-			true,
-			nil,
+			title:         "Should successfully check connection that open before reach the timeout.",
+			conn:          Connection{Type: "tcp", Scheme: "", Port: 8080, Host: "localhost", Path: ""},
+			allowStart:    true,
+			openConnAfter: 2,
+			finishOk:      true,
+			serverHanlder: nil,
 		},
 		{
-			"Should successfully check a HTTP connection that is already available.",
-			Connection{Type: "tcp", Scheme: "http", Port: 8080, Host: "localhost", Path: ""},
-			true,
-			0,
-			true,
-			nil,
+			title:         "Should successfully check a HTTP connection that is already available.",
+			conn:          Connection{Type: "tcp", Scheme: "http", Port: 8080, Host: "localhost", Path: ""},
+			allowStart:    true,
+			openConnAfter: 0,
+			finishOk:      true,
+			serverHanlder: nil,
 		},
 		{
-			"Should successfully check a HTTP connection that open before reach the timeout.",
-			Connection{Type: "tcp", Scheme: "http", Port: 8080, Host: "localhost", Path: ""},
-			true,
-			2,
-			true,
-			nil,
+			title:         "Should successfully check a HTTP connection that open before reach the timeout.",
+			conn:          Connection{Type: "tcp", Scheme: "http", Port: 8080, Host: "localhost", Path: ""},
+			allowStart:    true,
+			openConnAfter: 2,
+			finishOk:      true,
+			serverHanlder: nil,
 		},
 		{
-			"Should successfully check a HTTP connection that returns 404 status code.",
-			Connection{Type: "tcp", Scheme: "http", Port: 8080, Host: "localhost", Path: ""},
-			true,
-			0,
-			true,
-			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			title:         "Should successfully check a HTTP connection that returns 404 status code.",
+			conn:          Connection{Type: "tcp", Scheme: "http", Port: 8080, Host: "localhost", Path: ""},
+			allowStart:    true,
+			openConnAfter: 0,
+			finishOk:      true,
+			serverHanlder: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, "", 404)
 			}),
 		},
 		{
-			"Should fail checking a HTTP connection that returns 500 status code.",
-			Connection{Type: "tcp", Scheme: "http", Port: 8080, Host: "localhost", Path: ""},
-			true,
-			0,
-			false,
-			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			title:         "Should fail checking a HTTP connection that returns 500 status code.",
+			conn:          Connection{Type: "tcp", Scheme: "http", Port: 8080, Host: "localhost", Path: ""},
+			allowStart:    true,
+			openConnAfter: 0,
+			finishOk:      false,
+			serverHanlder: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, "", 500)
 			}),
 		},
@@ -131,7 +131,7 @@ func TestDialConn(t *testing.T) {
 		t.Run(v.title, func(t *testing.T) {
 			var err error
 			s := NewServer(&v.conn, v.serverHanlder)
-			defer s.Close()
+			defer s.Close() // nolint
 
 			if v.allowStart {
 				go func() {
@@ -176,11 +176,11 @@ func TestDialConfigs(t *testing.T) {
 			"Should successfully check a single connection.",
 			[]testItem{
 				{
-					Config{Port: 8080, Host: "localhost", Timeout: 5},
-					true,
-					0,
-					true,
-					nil,
+					conf:          Config{Port: 8080, Host: "localhost", Timeout: 5},
+					allowStart:    true,
+					openConnAfter: 0,
+					finishOk:      true,
+					serverHanlder: nil,
 				},
 			},
 		},
@@ -188,18 +188,18 @@ func TestDialConfigs(t *testing.T) {
 			"Should successfully check all connections.",
 			[]testItem{
 				{
-					Config{Port: 8080, Host: "localhost", Timeout: 5},
-					true,
-					0,
-					true,
-					nil,
+					conf:          Config{Port: 8080, Host: "localhost", Timeout: 5},
+					allowStart:    true,
+					openConnAfter: 0,
+					finishOk:      true,
+					serverHanlder: nil,
 				},
 				{
-					Config{Address: "http://localhost:8081", Timeout: 5},
-					true,
-					0,
-					true,
-					nil,
+					conf:          Config{Address: "http://localhost:8081", Timeout: 5},
+					allowStart:    true,
+					openConnAfter: 0,
+					finishOk:      true,
+					serverHanlder: nil,
 				},
 			},
 		},
@@ -207,18 +207,18 @@ func TestDialConfigs(t *testing.T) {
 			"Should fail when at least a single connection is not available.",
 			[]testItem{
 				{
-					Config{Port: 8080, Host: "localhost", Timeout: 5},
-					true,
-					0,
-					true,
-					nil,
+					conf:          Config{Port: 8080, Host: "localhost", Timeout: 5},
+					allowStart:    true,
+					openConnAfter: 0,
+					finishOk:      true,
+					serverHanlder: nil,
 				},
 				{
-					Config{Port: 8081, Host: "localhost", Timeout: 5},
-					false,
-					0,
-					false,
-					nil,
+					conf:          Config{Port: 8081, Host: "localhost", Timeout: 5},
+					allowStart:    false,
+					openConnAfter: 0,
+					finishOk:      false,
+					serverHanlder: nil,
 				},
 			},
 		},
@@ -226,18 +226,18 @@ func TestDialConfigs(t *testing.T) {
 			"Should fail when at least a single connection is not valid.",
 			[]testItem{
 				{
-					Config{Port: 8080, Host: "localhost", Timeout: 5},
-					true,
-					0,
-					true,
-					nil,
+					conf:          Config{Port: 8080, Host: "localhost", Timeout: 5},
+					allowStart:    true,
+					openConnAfter: 0,
+					finishOk:      true,
+					serverHanlder: nil,
 				},
 				{
-					Config{Address: "http:/localhost;8081", Timeout: 5},
-					false,
-					0,
-					false,
-					nil,
+					conf:          Config{Address: "http:/localhost;8081", Timeout: 5},
+					allowStart:    false,
+					openConnAfter: 0,
+					finishOk:      false,
+					serverHanlder: nil,
 				},
 			},
 		},
@@ -257,7 +257,7 @@ func TestDialConfigs(t *testing.T) {
 				conn := BuildConn(&item.conf)
 
 				s := NewServer(conn, item.serverHanlder)
-				defer s.Close()
+				defer s.Close() // nolint
 
 				if item.allowStart {
 					go func() {
