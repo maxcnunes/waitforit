@@ -5,8 +5,7 @@ import (
 	"strconv"
 )
 
-const regexAddressConn string = `^([a-z]{3,}):\/\/([^:]+):?([0-9]+)?$`
-const regexPathAddressConn string = `^([^\/]+)(\/?.*)$`
+const regexAddressConn string = `^([a-z]{3,}):\/\/([a-zA-Z0-9\.\-_]+):?([0-9]*)*([a-zA-Z0-9\/\.\-_\(\)?=&#%]*)*$`
 
 // Connection data
 type Connection struct {
@@ -36,12 +35,10 @@ func BuildConn(cfg *Config) *Connection {
 	}
 
 	res := match[0]
-
-	hostAndPath := regexp.MustCompile(regexPathAddressConn).FindAllStringSubmatch(res[2], -1)[0]
 	conn := &Connection{
 		Type: res[1],
-		Host: hostAndPath[1],
-		Path: hostAndPath[2],
+		Host: res[2],
+		Path: res[4],
 	}
 
 	if conn.Type != "tcp" {
@@ -50,14 +47,16 @@ func BuildConn(cfg *Config) *Connection {
 	}
 
 	// resolve port
-	if port, err := strconv.Atoi(res[3]); err != nil {
+	if len(res[3]) == 0 {
 		if conn.Scheme == "https" {
 			conn.Port = 443
 		} else {
 			conn.Port = 80
 		}
 	} else {
-		conn.Port = port
+		if port, err := strconv.Atoi(res[3]); err == nil {
+			conn.Port = port
+		}
 	}
 
 	return conn
