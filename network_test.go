@@ -31,6 +31,9 @@ func (s *Server) Start() (err error) {
 
 	addr := net.JoinHostPort(s.conn.Host, strconv.Itoa(s.conn.Port))
 	s.listener, err = net.Listen(s.conn.Type, addr)
+	if err != nil {
+		return err
+	}
 
 	if s.conn.Scheme == "http" {
 		s.server = &httptest.Server{
@@ -40,7 +43,7 @@ func (s *Server) Start() (err error) {
 
 		s.server.Start()
 	}
-	return err
+	return nil
 }
 
 func (s *Server) Close() (err error) {
