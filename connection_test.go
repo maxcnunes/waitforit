@@ -65,6 +65,14 @@ func TestBuildConn(t *testing.T) {
 			&Connection{Type: "tcp", Scheme: "https", Port: 443, Host: "localhost", Path: "/cars"},
 		},
 		{
+			"Should be able to create a http connection with a path with inner paths",
+			input{fullConn: "http://backend:8182/backend/tunnel/tunnel.nocache.js"},
+			&Connection{
+				Type: "tcp", Scheme: "http", Port: 8182, Host: "backend",
+				Path: "/backend/tunnel/tunnel.nocache.js",
+			},
+		},
+		{
 			"Should fail when host and full connection are not provided",
 			input{},
 			nil,
