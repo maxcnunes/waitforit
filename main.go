@@ -17,6 +17,7 @@ type Config struct {
 	Host    string `json:"host"`
 	Port    int    `json:"port"`
 	Address string `json:"address"`
+	Status  int    `json:"status"`
 	Timeout int    `json:"timeout"`
 	Retry   int    `json:"retry"`
 }
@@ -34,6 +35,7 @@ func main() {
 	}
 
 	address := flag.String("address", "", "address (e.g. http://google.com or tcp://mysql_ip:mysql_port)")
+	status := flag.Int("status", 0, "expected status that address should return (e.g. 200")
 	host := flag.String("host", "", "host to connect")
 	port := flag.Int("port", 80, "port to connect")
 	timeout := flag.Int("timeout", 10, "seconds to wait until the address become available")
@@ -74,6 +76,7 @@ func main() {
 					Host:    *host,
 					Port:    *port,
 					Address: *address,
+					Status:  *status,
 					Timeout: *timeout,
 					Retry:   *retry,
 				},

@@ -20,7 +20,7 @@ func DialConfigs(confs []Config, print func(a ...interface{})) error {
 				return
 			}
 
-			ch <- DialConn(conn, conf.Timeout, conf.Retry, print)
+			ch <- DialConn(conn, conf.Timeout, conf.Retry, conf.Status, print)
 		}(config)
 	}
 
@@ -34,7 +34,7 @@ func DialConfigs(confs []Config, print func(a ...interface{})) error {
 }
 
 // DialConn check if the connection is available
-func DialConn(conn *Connection, timeoutSeconds int, retryMseconds int, print func(a ...interface{})) error {
+func DialConn(conn *Connection, timeoutSeconds int, retryMseconds int, status int, print func(a ...interface{})) error {
 	print("Waiting " + strconv.Itoa(timeoutSeconds) + " seconds")
 	if err := pingTCP(conn, timeoutSeconds, retryMseconds, print); err != nil {
 		return err
@@ -44,14 +44,17 @@ func DialConn(conn *Connection, timeoutSeconds int, retryMseconds int, print fun
 		return nil
 	}
 
-	return pingHTTP(conn, timeoutSeconds, retryMseconds, print)
+	return pingHTTP(conn, timeoutSeconds, retryMseconds, status, print)
 }
 
-func pingHTTP(conn *Connection, timeoutSeconds int, retryMseconds int, print func(a ...interface{})) error {
+func pingHTTP(conn *Connection, timeoutSeconds int, retryMseconds int, status int, print func(a ...interface{})) error {
 	timeout := time.Duration(timeoutSeconds) * time.Second
 	start := time.Now()
 	address := fmt.Sprintf("%s://%s:%d%s", conn.Scheme, conn.Host, conn.Port, conn.Path)
 	print("HTTP address: " + address)
+	if status > 0 {
+		print("Expect HTTP status" + strconv.Itoa(status))
+	}
 
 	for {
 		resp, err := http.Get(address)
@@ -60,8 +63,12 @@ func pingHTTP(conn *Connection, timeoutSeconds int, retryMseconds int, print fun
 			print("ping HTTP " + address + " " + resp.Status)
 		}
 
-		if err == nil && resp.StatusCode < http.StatusInternalServerError {
-			return nil
+		if err == nil {
+			if status > 0 && status == resp.StatusCode {
+				return nil
+			} else if status == 0 && resp.StatusCode < http.StatusInternalServerError {
+				return nil
+			}
 		}
 
 		if time.Since(start) > timeout {
