@@ -53,7 +53,7 @@ func pingAddress(conn *Connection, timeoutSeconds int, retryMseconds int, status
 	start := time.Now()
 	address := conn.URL.String()
 	print("Ping http address: " + address)
-  if status > 0 {
+	if status > 0 {
 		print("Expect HTTP status" + strconv.Itoa(status))
 	}
 

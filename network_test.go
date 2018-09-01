@@ -67,7 +67,7 @@ func TestDialConn(t *testing.T) {
 	testCases := []struct {
 		title         string
 		cfg           *Config
-    status        int
+		status        int
 		allowStart    bool
 		openConnAfter int
 		finishOk      bool
@@ -75,9 +75,8 @@ func TestDialConn(t *testing.T) {
 	}{
 		{
 			title:         "Should successfully check connection that is already available.",
-			conn:          Connection{Type: "tcp", Scheme: "", Port: 8080, Host: "localhost", Path: ""},		
 			cfg:           &Config{Address: "localhost:8080"},
-      status:        0,
+			status:        0,
 			allowStart:    true,
 			openConnAfter: 0,
 			finishOk:      true,
@@ -86,7 +85,7 @@ func TestDialConn(t *testing.T) {
 		{
 			title:         "Should successfully check connection that open before reach the timeout.",
 			cfg:           &Config{Address: "localhost:8080"},
-      status:        0,
+			status:        0,
 			allowStart:    true,
 			openConnAfter: 2,
 			finishOk:      true,
@@ -95,7 +94,7 @@ func TestDialConn(t *testing.T) {
 		{
 			title:         "Should successfully check a HTTP connection that is already available.",
 			cfg:           &Config{Address: "http://localhost:8080"},
-      status:        0,
+			status:        0,
 			allowStart:    true,
 			openConnAfter: 0,
 			finishOk:      true,
@@ -104,7 +103,7 @@ func TestDialConn(t *testing.T) {
 		{
 			title:         "Should successfully check a HTTP connection that open before reach the timeout.",
 			cfg:           &Config{Address: "http://localhost:8080"},
-      status:        0,
+			status:        0,
 			allowStart:    true,
 			openConnAfter: 2,
 			finishOk:      true,
@@ -113,7 +112,7 @@ func TestDialConn(t *testing.T) {
 		{
 			title:         "Should successfully check a HTTP connection that returns 404 status code.",
 			cfg:           &Config{Address: "http://localhost:8080"},
-      status:        0,
+			status:        0,
 			allowStart:    true,
 			openConnAfter: 0,
 			finishOk:      true,
@@ -124,7 +123,7 @@ func TestDialConn(t *testing.T) {
 		{
 			title:         "Should fail checking a HTTP connection that returns 500 status code.",
 			cfg:           &Config{Address: "http://localhost:8080"},
-      status:        0,
+			status:        0,
 			allowStart:    true,
 			openConnAfter: 0,
 			finishOk:      false,
