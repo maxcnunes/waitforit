@@ -1,63 +1,60 @@
 package main
 
 import (
-	"regexp"
+	"errors"
+	"fmt"
+	"net"
+	"net/url"
 	"strconv"
 )
 
-const regexAddressConn string = `^([a-z]{3,}):\/\/([a-zA-Z0-9\.\-_]+):?([0-9]*)*([a-zA-Z0-9\/\.\-_\(\)?=&#%]*)*$`
-
 // Connection data
 type Connection struct {
-	Type   string
-	Scheme string
-	Port   int
-	Host   string
-	Path   string
+	NetworkType string
+	URL         *url.URL
 }
 
 // BuildConn build a connection structure.
 // This connection data can later be used as a common structure
 // by the functions that will check if the target is available.
-func BuildConn(cfg *Config) *Connection {
-	if cfg.Host != "" {
-		return &Connection{Type: "tcp", Host: cfg.Host, Port: cfg.Port}
-	}
-
+func BuildConn(cfg *Config) (*Connection, error) { // nolint gocyclo
 	address := cfg.Address
+	if cfg.Host != "" {
+		address = net.JoinHostPort(cfg.Host, strconv.Itoa(cfg.Port))
+	}
+
 	if address == "" {
-		return nil
+		return nil, errors.New("Connection address is empty")
 	}
 
-	match := regexp.MustCompile(regexAddressConn).FindAllStringSubmatch(address, -1)
-	if len(match) < 1 {
-		return nil
+	u, err := url.Parse(address)
+
+	// the url parsing may fail if it is missing the scheme value
+	// so it try again adding a tcp scheme as falback
+	var err2 error
+	if err != nil || (u.Scheme != "" && u.Host == "") {
+		u, err = url.Parse(fmt.Sprintf("tcp://%s", address))
 	}
 
-	res := match[0]
-	conn := &Connection{
-		Type: res[1],
-		Host: res[2],
-		Path: res[4],
+	// return error from the original address
+	if err2 != nil {
+		return nil, fmt.Errorf("Error parsing connection address: %v", err)
 	}
 
-	if conn.Type != "tcp" {
-		conn.Scheme = conn.Type
-		conn.Type = "tcp"
+	if u.Hostname() == "" {
+		return nil, fmt.Errorf("Couldn't parse address: %s", address)
 	}
 
-	// resolve port
-	if len(res[3]) == 0 {
-		if conn.Scheme == "https" {
-			conn.Port = 443
-		} else {
-			conn.Port = 80
-		}
-	} else {
-		if port, err := strconv.Atoi(res[3]); err == nil {
-			conn.Port = port
+	if u.Scheme == "" {
+		if p := u.Port(); p == "80" {
+			u.Scheme = "http"
+		} else if p == "443" {
+			u.Scheme = "https"
 		}
 	}
 
-	return conn
+	return &Connection{
+		NetworkType: "tcp",
+		URL:         u,
+	}, nil
 }

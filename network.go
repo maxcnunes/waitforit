@@ -14,9 +14,9 @@ func DialConfigs(confs []Config, print func(a ...interface{})) error {
 	ch := make(chan error)
 	for _, config := range confs {
 		go func(conf Config) {
-			conn := BuildConn(&conf)
-			if conn == nil {
-				ch <- fmt.Errorf("Invalid connection %#v", conf)
+			conn, err := BuildConn(&conf)
+			if err != nil {
+				ch <- fmt.Errorf("Invalid connection %#v: %v", conf, err)
 				return
 			}
 
@@ -36,28 +36,29 @@ func DialConfigs(confs []Config, print func(a ...interface{})) error {
 // DialConn check if the connection is available
 func DialConn(conn *Connection, timeoutSeconds int, retryMseconds int, print func(a ...interface{})) error {
 	print("Waiting " + strconv.Itoa(timeoutSeconds) + " seconds")
-	if err := pingTCP(conn, timeoutSeconds, retryMseconds, print); err != nil {
+	if err := pingHost(conn, timeoutSeconds, retryMseconds, print); err != nil {
 		return err
 	}
 
-	if conn.Scheme != "http" && conn.Scheme != "https" {
-		return nil
+	if conn.URL.Scheme == "http" || conn.URL.Scheme == "https" {
+		return pingAddress(conn, timeoutSeconds, retryMseconds, print)
 	}
 
-	return pingHTTP(conn, timeoutSeconds, retryMseconds, print)
+	return nil
 }
 
-func pingHTTP(conn *Connection, timeoutSeconds int, retryMseconds int, print func(a ...interface{})) error {
+// pingAddress check if the full address is responding properly
+func pingAddress(conn *Connection, timeoutSeconds int, retryMseconds int, print func(a ...interface{})) error {
 	timeout := time.Duration(timeoutSeconds) * time.Second
 	start := time.Now()
-	address := fmt.Sprintf("%s://%s:%d%s", conn.Scheme, conn.Host, conn.Port, conn.Path)
-	print("HTTP address: " + address)
+	address := conn.URL.String()
+	print("Ping http address: " + address)
 
 	for {
 		resp, err := http.Get(address)
 
 		if resp != nil {
-			print("ping HTTP " + address + " " + resp.Status)
+			print("Ping http address " + address + " " + resp.Status)
 		}
 
 		if err == nil && resp.StatusCode < http.StatusInternalServerError {
@@ -72,15 +73,16 @@ func pingHTTP(conn *Connection, timeoutSeconds int, retryMseconds int, print fun
 	}
 }
 
-func pingTCP(conn *Connection, timeoutSeconds int, retryMseconds int, print func(a ...interface{})) error {
+// pingHost check if the host (hostname:port) is responding properly
+func pingHost(conn *Connection, timeoutSeconds int, retryMseconds int, print func(a ...interface{})) error {
 	timeout := time.Duration(timeoutSeconds) * time.Second
 	start := time.Now()
-	address := fmt.Sprintf("%s:%d", conn.Host, conn.Port)
-	print("Dial address: " + address)
+	address := conn.URL.Host
+	print("Ping host: " + address)
 
 	for {
-		_, err := net.DialTimeout(conn.Type, address, time.Second)
-		print("ping TCP: " + address)
+		_, err := net.DialTimeout(conn.NetworkType, address, time.Second)
+		print("Ping host: " + address)
 
 		if err == nil {
 			print("Up: " + address)
