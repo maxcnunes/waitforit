@@ -1,7 +1,6 @@
 package main_test
 
 import (
-	"reflect"
 	"testing"
 
 	. "github.com/maxcnunes/waitforit"
@@ -9,67 +8,87 @@ import (
 
 func TestBuildConn(t *testing.T) {
 	type input struct {
-		host     string
-		port     int
-		fullConn string
+		host    string
+		port    int
+		address string
+	}
+
+	type expected struct {
+		netType string
+		host    string
+		address string
 	}
 
 	testCases := []struct {
 		title    string
 		data     input
-		expected *Connection
+		expected *expected
 	}{
 		{
 			"Should create a default connection when only host and port are given",
 			input{host: "localhost", port: 80},
-			&Connection{Type: "tcp", Scheme: "", Port: 80, Host: "localhost", Path: ""},
-		},
-		{
-			"Should be able to create a connection with different host",
-			input{host: "localhost", port: 80},
-			&Connection{Type: "tcp", Scheme: "", Port: 80, Host: "localhost", Path: ""},
+			&expected{netType: "tcp", host: "localhost:80", address: "tcp://localhost:80"},
 		},
 		{
 			"Should be able to create a connection with different port",
 			input{host: "localhost", port: 90},
-			&Connection{Type: "tcp", Scheme: "", Port: 90, Host: "localhost", Path: ""},
+			&expected{netType: "tcp", host: "localhost:90", address: "tcp://localhost:90"},
 		},
 		{
-			"Should ignore the fullConn when the host is given",
-			input{host: "localhost", port: 90, fullConn: "tcp://remotehost:10"},
-			&Connection{Type: "tcp", Scheme: "", Port: 90, Host: "localhost", Path: ""},
+			"Should ignore the address when the host is given",
+			input{host: "localhost", port: 90, address: "tcp://remotehost:10"},
+			&expected{netType: "tcp", host: "localhost:90", address: "tcp://localhost:90"},
 		},
 		{
-			"Should be able to craete a connection given a fullConn",
-			input{fullConn: "tcp://remotehost:10"},
-			&Connection{Type: "tcp", Scheme: "", Port: 10, Host: "remotehost", Path: ""},
+			"Should be able to craete a connection given a address",
+			input{address: "tcp://remotehost:10"},
+			&expected{netType: "tcp", host: "remotehost:10", address: "tcp://remotehost:10"},
 		},
 		{
-			"Should be able to create a http connection through the fullConn",
-			input{fullConn: "http://localhost"},
-			&Connection{Type: "tcp", Scheme: "http", Port: 80, Host: "localhost", Path: ""},
+			"Should be able to create a http connection through the address",
+			input{address: "http://localhost"},
+			&expected{netType: "tcp", host: "localhost", address: "http://localhost"},
 		},
 		{
-			"Should be able to create a https connection through the fullConn",
-			input{fullConn: "https://localhost"},
-			&Connection{Type: "tcp", Scheme: "https", Port: 443, Host: "localhost", Path: ""},
+			"Should be able to create a https connection through the address",
+			input{address: "https://localhost"},
+			&expected{netType: "tcp", host: "localhost", address: "https://localhost"},
 		},
 		{
-			"Should support fullConn to https with custom port",
-			input{fullConn: "https://localhost:444"},
-			&Connection{Type: "tcp", Scheme: "https", Port: 444, Host: "localhost", Path: ""},
+			"Should support address to https with custom port",
+			input{address: "https://localhost:444"},
+			&expected{netType: "tcp", host: "localhost:444", address: "https://localhost:444"},
 		},
 		{
-			"Should be able to create a http connection with a path through the fullConn",
-			input{fullConn: "https://localhost/cars"},
-			&Connection{Type: "tcp", Scheme: "https", Port: 443, Host: "localhost", Path: "/cars"},
+			"Should be able to create a http connection with a path through the address",
+			input{address: "https://localhost/cars"},
+			&expected{netType: "tcp", host: "localhost", address: "https://localhost/cars"},
 		},
 		{
 			"Should be able to create a http connection with a path with inner paths",
-			input{fullConn: "http://backend:8182/backend/tunnel/tunnel.nocache.js"},
-			&Connection{
-				Type: "tcp", Scheme: "http", Port: 8182, Host: "backend",
-				Path: "/backend/tunnel/tunnel.nocache.js",
+			input{address: "http://backend:8182/backend/tunnel/tunnel.nocache.js"},
+			&expected{
+				netType: "tcp",
+				host:    "backend:8182",
+				address: "http://backend:8182/backend/tunnel/tunnel.nocache.js",
+			},
+		},
+		{
+			"Should be able to create a ipv6 connection",
+			input{address: "http://[2001:41d0:8:6a52:298:2dff:fef3:8ce1]:8182/cars"},
+			&expected{
+				netType: "tcp",
+				host:    "[2001:41d0:8:6a52:298:2dff:fef3:8ce1]:8182",
+				address: "http://[2001:41d0:8:6a52:298:2dff:fef3:8ce1]:8182/cars",
+			},
+		},
+		{
+			"Should be able to create a ipv6 connection without a provided scheme",
+			input{address: "[2001:41d0:8:6a52:298:2dff:fef3:8ce1]:8182/cars"},
+			&expected{
+				netType: "tcp",
+				host:    "[2001:41d0:8:6a52:298:2dff:fef3:8ce1]:8182",
+				address: "tcp://[2001:41d0:8:6a52:298:2dff:fef3:8ce1]:8182/cars",
 			},
 		},
 		{
@@ -79,22 +98,41 @@ func TestBuildConn(t *testing.T) {
 		},
 		{
 			"Should fail when full connection is not a valid address format",
-			input{fullConn: ":/localhost;80"},
+			input{address: ":/localhost;80"},
 			nil,
 		},
 	}
 
 	for _, v := range testCases {
-		cfg := &Config{
-			Host:    v.data.host,
-			Port:    v.data.port,
-			Address: v.data.fullConn,
-		}
-		conn := BuildConn(cfg)
 		t.Run(v.title, func(t *testing.T) {
-			if !reflect.DeepEqual(conn, v.expected) {
-				t.Errorf("Expected to %#v to be deep equal %#v", conn, v.expected)
+			cfg := &Config{
+				Host:    v.data.host,
+				Port:    v.data.port,
+				Address: v.data.address,
 			}
+
+			conn, err := BuildConn(cfg)
+			if v.expected == nil {
+				if conn == nil {
+					return
+				}
+
+				t.Fatalf("Expected connection build to fail, instead it successed with network type %s and url %s", conn.NetworkType, conn.URL)
+			}
+
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			assertEqual(t, "network type", conn.NetworkType, v.expected.netType)
+			assertEqual(t, "host", conn.URL.Host, v.expected.host)
+			assertEqual(t, "address", conn.URL.String(), v.expected.address)
 		})
+	}
+}
+
+func assertEqual(t *testing.T, name string, a interface{}, b interface{}) {
+	if a != b {
+		t.Errorf("Expected %s %#v to be deep equal to %#v", name, a, b)
 	}
 }

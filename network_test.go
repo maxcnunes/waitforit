@@ -4,7 +4,6 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
 	"testing"
 	"time"
 
@@ -29,13 +28,12 @@ func (s *Server) Start() (err error) {
 		return nil
 	}
 
-	addr := net.JoinHostPort(s.conn.Host, strconv.Itoa(s.conn.Port))
-	s.listener, err = net.Listen(s.conn.Type, addr)
+	s.listener, err = net.Listen(s.conn.NetworkType, s.conn.URL.Host)
 	if err != nil {
 		return err
 	}
 
-	if s.conn.Scheme == "http" {
+	if s.conn.URL.Scheme == "http" {
 		s.server = &httptest.Server{
 			Listener: s.listener,
 			Config:   &http.Server{Handler: s.serverHandler},
@@ -51,7 +49,7 @@ func (s *Server) Close() (err error) {
 		return nil
 	}
 
-	if s.conn.Scheme == "http" {
+	if s.conn.URL.Scheme == "http" {
 		if s.server != nil {
 			s.server.Close()
 		}
@@ -68,8 +66,8 @@ func TestDialConn(t *testing.T) {
 
 	testCases := []struct {
 		title         string
-		conn          Connection
-		status        int
+		cfg           *Config
+    status        int
 		allowStart    bool
 		openConnAfter int
 		finishOk      bool
@@ -77,8 +75,9 @@ func TestDialConn(t *testing.T) {
 	}{
 		{
 			title:         "Should successfully check connection that is already available.",
-			conn:          Connection{Type: "tcp", Scheme: "", Port: 8080, Host: "localhost", Path: ""},
-			status:        0,
+			conn:          Connection{Type: "tcp", Scheme: "", Port: 8080, Host: "localhost", Path: ""},		
+			cfg:           &Config{Address: "localhost:8080"},
+      status:        0,
 			allowStart:    true,
 			openConnAfter: 0,
 			finishOk:      true,
@@ -86,8 +85,8 @@ func TestDialConn(t *testing.T) {
 		},
 		{
 			title:         "Should successfully check connection that open before reach the timeout.",
-			conn:          Connection{Type: "tcp", Scheme: "", Port: 8080, Host: "localhost", Path: ""},
-			status:        0,
+			cfg:           &Config{Address: "localhost:8080"},
+      status:        0,
 			allowStart:    true,
 			openConnAfter: 2,
 			finishOk:      true,
@@ -95,8 +94,8 @@ func TestDialConn(t *testing.T) {
 		},
 		{
 			title:         "Should successfully check a HTTP connection that is already available.",
-			conn:          Connection{Type: "tcp", Scheme: "http", Port: 8080, Host: "localhost", Path: ""},
-			status:        0,
+			cfg:           &Config{Address: "http://localhost:8080"},
+      status:        0,
 			allowStart:    true,
 			openConnAfter: 0,
 			finishOk:      true,
@@ -104,8 +103,8 @@ func TestDialConn(t *testing.T) {
 		},
 		{
 			title:         "Should successfully check a HTTP connection that open before reach the timeout.",
-			conn:          Connection{Type: "tcp", Scheme: "http", Port: 8080, Host: "localhost", Path: ""},
-			status:        0,
+			cfg:           &Config{Address: "http://localhost:8080"},
+      status:        0,
 			allowStart:    true,
 			openConnAfter: 2,
 			finishOk:      true,
@@ -113,8 +112,8 @@ func TestDialConn(t *testing.T) {
 		},
 		{
 			title:         "Should successfully check a HTTP connection that returns 404 status code.",
-			conn:          Connection{Type: "tcp", Scheme: "http", Port: 8080, Host: "localhost", Path: ""},
-			status:        0,
+			cfg:           &Config{Address: "http://localhost:8080"},
+      status:        0,
 			allowStart:    true,
 			openConnAfter: 0,
 			finishOk:      true,
@@ -124,8 +123,8 @@ func TestDialConn(t *testing.T) {
 		},
 		{
 			title:         "Should fail checking a HTTP connection that returns 500 status code.",
-			conn:          Connection{Type: "tcp", Scheme: "http", Port: 8080, Host: "localhost", Path: ""},
-			status:        0,
+			cfg:           &Config{Address: "http://localhost:8080"},
+      status:        0,
 			allowStart:    true,
 			openConnAfter: 0,
 			finishOk:      false,
@@ -135,7 +134,7 @@ func TestDialConn(t *testing.T) {
 		},
 		{
 			title:         "Should successfully check a HTTP connection that returns 200 status code before reach the timeout.",
-			conn:          Connection{Type: "tcp", Scheme: "http", Port: 8080, Host: "localhost", Path: ""},
+			cfg:           &Config{Address: "http://localhost:8080"},
 			status:        200,
 			allowStart:    true,
 			openConnAfter: 2,
@@ -146,7 +145,7 @@ func TestDialConn(t *testing.T) {
 		},
 		{
 			title:         "Should fail checking a HTTP connection that returns not expected status code.",
-			conn:          Connection{Type: "tcp", Scheme: "http", Port: 8080, Host: "localhost", Path: ""},
+			cfg:           &Config{Address: "http://localhost:8080"},
 			status:        200,
 			allowStart:    true,
 			openConnAfter: 0,
@@ -162,7 +161,13 @@ func TestDialConn(t *testing.T) {
 	for _, v := range testCases {
 		t.Run(v.title, func(t *testing.T) {
 			var err error
-			s := NewServer(&v.conn, v.serverHanlder)
+
+			conn, err := BuildConn(&Config{Address: v.cfg.Address})
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			s := NewServer(conn, v.serverHanlder)
 			defer s.Close() // nolint
 
 			if v.allowStart {
@@ -171,26 +176,26 @@ func TestDialConn(t *testing.T) {
 						time.Sleep(time.Duration(v.openConnAfter) * time.Second)
 					}
 
-					if err := s.Start(); err != nil {
+					if err = s.Start(); err != nil {
 						t.Error(err)
 					}
 				}()
 			}
 
-			err = DialConn(&v.conn, defaultTimeout, defaultRetry, v.status, print)
+			err = DialConn(conn, defaultTimeout, defaultRetry, v.status, print)
 			if err != nil && v.finishOk {
-				t.Errorf("Expected to connect successfully %#v. But got error %v.", v.conn, err)
+				t.Errorf("Expected to connect successfully %s. But got error %v.", v.cfg.Address, err)
 				return
 			}
 
 			if err == nil && !v.finishOk {
-				t.Errorf("Expected to not connect successfully %#v.", v.conn)
+				t.Errorf("Expected to not connect successfully %s.", v.cfg.Address)
 			}
 		})
 	}
 }
 
-func TestDialConfigs(t *testing.T) {
+func TestDialConfigs(t *testing.T) { // nolint gocyclo
 	print := func(a ...interface{}) {}
 
 	type testItem struct {
@@ -286,7 +291,10 @@ func TestDialConfigs(t *testing.T) {
 					finishAllOk = false
 				}
 
-				conn := BuildConn(&item.conf)
+				conn, err := BuildConn(&item.conf)
+				if err != nil {
+					t.Fatal(err)
+				}
 
 				s := NewServer(conn, item.serverHanlder)
 				defer s.Close() // nolint
