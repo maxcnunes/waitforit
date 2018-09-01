@@ -20,7 +20,7 @@ func DialConfigs(confs []Config, print func(a ...interface{})) error {
 				return
 			}
 
-			ch <- DialConn(conn, conf.Timeout, conf.Retry, print)
+			ch <- DialConn(conn, conf.Timeout, conf.Retry, conf.Status, print)
 		}(config)
 	}
 
@@ -34,25 +34,28 @@ func DialConfigs(confs []Config, print func(a ...interface{})) error {
 }
 
 // DialConn check if the connection is available
-func DialConn(conn *Connection, timeoutSeconds int, retryMseconds int, print func(a ...interface{})) error {
+func DialConn(conn *Connection, timeoutSeconds int, retryMseconds int, status int, print func(a ...interface{})) error {
 	print("Waiting " + strconv.Itoa(timeoutSeconds) + " seconds")
 	if err := pingHost(conn, timeoutSeconds, retryMseconds, print); err != nil {
 		return err
 	}
 
 	if conn.URL.Scheme == "http" || conn.URL.Scheme == "https" {
-		return pingAddress(conn, timeoutSeconds, retryMseconds, print)
+		return pingAddress(conn, timeoutSeconds, retryMseconds, status, print)
 	}
 
 	return nil
 }
 
 // pingAddress check if the full address is responding properly
-func pingAddress(conn *Connection, timeoutSeconds int, retryMseconds int, print func(a ...interface{})) error {
+func pingAddress(conn *Connection, timeoutSeconds int, retryMseconds int, status int, print func(a ...interface{})) error {
 	timeout := time.Duration(timeoutSeconds) * time.Second
 	start := time.Now()
 	address := conn.URL.String()
 	print("Ping http address: " + address)
+  if status > 0 {
+		print("Expect HTTP status" + strconv.Itoa(status))
+	}
 
 	for {
 		resp, err := http.Get(address)
@@ -61,8 +64,12 @@ func pingAddress(conn *Connection, timeoutSeconds int, retryMseconds int, print 
 			print("Ping http address " + address + " " + resp.Status)
 		}
 
-		if err == nil && resp.StatusCode < http.StatusInternalServerError {
-			return nil
+		if err == nil {
+			if status > 0 && status == resp.StatusCode {
+				return nil
+			} else if status == 0 && resp.StatusCode < http.StatusInternalServerError {
+				return nil
+			}
 		}
 
 		if time.Since(start) > timeout {
