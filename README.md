@@ -81,7 +81,7 @@ waitforit -file=./config.json
 ```
 FROM node:6.5.0
 
-ENV WAITFORIT_VERSION="v2.2.1" # PS: check the latest version
+ENV WAITFORIT_VERSION="v2.3.0"
 RUN curl -o /usr/local/bin/waitforit -sSL https://github.com/maxcnunes/waitforit/releases/download/$WAITFORIT_VERSION/waitforit-linux_amd64 && \
     chmod +x /usr/local/bin/waitforit
 ```
@@ -91,7 +91,7 @@ RUN curl -o /usr/local/bin/waitforit -sSL https://github.com/maxcnunes/waitforit
 ```
 FROM node:6.5.0
 
-ENV WAITFORIT_VERSION="v2.2.1" # PS: check the latest version
+ENV WAITFORIT_VERSION="v2.3.0"
 RUN wget -q -O /usr/local/bin/waitforit https://github.com/maxcnunes/waitforit/releases/download/$WAITFORIT_VERSION/waitforit-linux_amd64 \
     && chmod +x /usr/local/bin/waitforit
 ```
