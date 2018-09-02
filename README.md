@@ -23,6 +23,7 @@ Wait until an address become available.
 - `-debug`: Enable debug
 - `-v`: Show the current version
 - `-file`: Path to the JSON file with the configs
+- `-header`: List of headers sent in the http(s) ping request
 - `-- `: Execute a post command once the address became available
 
 ### Example
@@ -39,6 +40,8 @@ waitforit -address=http://google.com -timeout=20 -debug
 waitforit -address=http://google.com:90 -timeout=20 -retry=500 -debug
 
 waitforit -address=http://google.com -timeout=20 -debug -- printf "Google Works\!"
+
+waitforit -address=http://google.com -header "Authorization: Basic Zm9vOmJhcg==" -header "X-ID: 111" -debug
 ```
 
 #### Using with config file
@@ -53,7 +56,11 @@ Example JSON:
       "host": "google.com",
       "port": 80,
       "timeout": 20,
-      "retry": 500
+      "retry": 500,
+      "headers": {
+        "Authorization": "Basic Zm9vOmJhcg==",
+        "X-ID": "111"
+      }
     },
     {
       "address": "http://google.com:80",
@@ -74,7 +81,7 @@ waitforit -file=./config.json
 ```
 FROM node:6.5.0
 
-ENV WAITFORIT_VERSION="v2.2.1"
+ENV WAITFORIT_VERSION="v2.2.1" # PS: check the latest version
 RUN curl -o /usr/local/bin/waitforit -sSL https://github.com/maxcnunes/waitforit/releases/download/$WAITFORIT_VERSION/waitforit-linux_amd64 && \
     chmod +x /usr/local/bin/waitforit
 ```
@@ -84,7 +91,7 @@ RUN curl -o /usr/local/bin/waitforit -sSL https://github.com/maxcnunes/waitforit
 ```
 FROM node:6.5.0
 
-ENV WAITFORIT_VERSION="v2.2.1"
+ENV WAITFORIT_VERSION="v2.2.1" # PS: check the latest version
 RUN wget -q -O /usr/local/bin/waitforit https://github.com/maxcnunes/waitforit/releases/download/$WAITFORIT_VERSION/waitforit-linux_amd64 \
     && chmod +x /usr/local/bin/waitforit
 ```

@@ -1,9 +1,11 @@
 package main_test
 
 import (
+	"encoding/base64"
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -71,6 +73,7 @@ func TestDialConn(t *testing.T) {
 		allowStart    bool
 		openConnAfter int
 		finishOk      bool
+		headers       map[string]string
 		serverHanlder http.Handler
 	}{
 		{
@@ -153,6 +156,25 @@ func TestDialConn(t *testing.T) {
 				http.Error(w, "", 404)
 			}),
 		},
+		{
+			title:         "Should not crash on checking a HTTP connection with not authorized basic auth.",
+			cfg:           &Config{Address: "http://localhost:8080"},
+			status:        0,
+			allowStart:    true,
+			openConnAfter: 0,
+			finishOk:      true,
+			serverHanlder: http.HandlerFunc(basicAuthHandler),
+		},
+		{
+			title:         "Should support passing basic auth header on checking a HTTP connection.",
+			cfg:           &Config{Address: "http://localhost:8080"},
+			status:        200,
+			allowStart:    true,
+			openConnAfter: 0,
+			finishOk:      true,
+			headers:       map[string]string{"Authorization": "Basic Zm9vOmJhcg=="},
+			serverHanlder: http.HandlerFunc(basicAuthHandler),
+		},
 	}
 
 	defaultTimeout := 5
@@ -181,7 +203,14 @@ func TestDialConn(t *testing.T) {
 				}()
 			}
 
-			err = DialConn(conn, defaultTimeout, defaultRetry, v.status, print)
+			conf := &Config{
+				Timeout: defaultTimeout,
+				Retry:   defaultRetry,
+				Status:  v.status,
+				Headers: v.headers,
+			}
+
+			err = DialConn(conn, conf, print)
 			if err != nil && v.finishOk {
 				t.Errorf("Expected to connect successfully %s. But got error %v.", v.cfg.Address, err)
 				return
@@ -322,4 +351,43 @@ func TestDialConfigs(t *testing.T) { // nolint gocyclo
 			}
 		})
 	}
+}
+
+func basicAuthHandler(w http.ResponseWriter, r *http.Request) {
+	authorizationArray := r.Header["Authorization"]
+
+	if len(authorizationArray) > 0 {
+		authorization := strings.TrimSpace(authorizationArray[0])
+		credentials := strings.Split(authorization, " ")
+
+		if len(credentials) != 2 || credentials[0] != "Basic" {
+			unauthorized(w)
+			return
+		}
+
+		authstr, err := base64.StdEncoding.DecodeString(credentials[1])
+		if err != nil {
+			unauthorized(w)
+			return
+		}
+
+		userpass := strings.Split(string(authstr), ":")
+		if len(userpass) != 2 {
+			unauthorized(w)
+			return
+		}
+
+		if userpass[0] == "foo" && userpass[1] == "bar" {
+			w.Write([]byte("OK"))
+		} else {
+			unauthorized(w)
+		}
+	} else {
+		unauthorized(w)
+	}
+}
+
+func unauthorized(w http.ResponseWriter) {
+	w.Header().Set("WWW-Authenticate", "Basic realm=\"user\"")
+	http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 }
