@@ -8,6 +8,7 @@ import (
 
 func TestBuildConn(t *testing.T) {
 	type input struct {
+		proto   string
 		host    string
 		port    int
 		address string
@@ -35,9 +36,9 @@ func TestBuildConn(t *testing.T) {
 			&expected{netType: "tcp", host: "localhost:90", address: "tcp://localhost:90"},
 		},
 		{
-			"Should ignore the address when the host is given",
+			"Should ignore protocol, host or port when an address is given",
 			input{host: "localhost", port: 90, address: "tcp://remotehost:10"},
-			&expected{netType: "tcp", host: "localhost:90", address: "tcp://localhost:90"},
+			&expected{netType: "tcp", host: "remotehost:10", address: "tcp://remotehost:10"},
 		},
 		{
 			"Should be able to craete a connection given a address",

@@ -15,13 +15,14 @@ var VERSION string
 
 // Config describes the connection config
 type Config struct {
-	Host    string            `json:"host"`
-	Port    int               `json:"port"`
-	Address string            `json:"address"`
-	Status  int               `json:"status"`
-	Timeout int               `json:"timeout"`
-	Retry   int               `json:"retry"`
-	Headers map[string]string `json:"headers"`
+	Protocol string            `json:"proto"`
+	Host     string            `json:"host"`
+	Port     int               `json:"port"`
+	Address  string            `json:"address"`
+	Status   int               `json:"status"`
+	Timeout  int               `json:"timeout"`
+	Retry    int               `json:"retry"`
+	Headers  map[string]string `json:"headers"`
 }
 
 // FileConfig describes the structure of the config json file
@@ -54,9 +55,10 @@ func main() { // nolint gocyclo
 	var fheaders arrayFlags
 
 	address := flag.String("address", "", "address (e.g. http://google.com or tcp://mysql_ip:mysql_port)")
-	status := flag.Int("status", 0, "expected status that address should return (e.g. 200")
+	proto := flag.String("proto", "", "protocol to use during the connection")
 	host := flag.String("host", "", "host to connect")
-	port := flag.Int("port", 80, "port to connect")
+	port := flag.Int("port", 0, "port to connect")
+	status := flag.Int("status", 0, "expected status that address should return (e.g. 200")
 	timeout := flag.Int("timeout", 10, "seconds to wait until the address become available")
 	retry := flag.Int("retry", 500, "milliseconds to wait between retries")
 	printVersion := flag.Bool("v", false, "show the current version")
@@ -104,13 +106,14 @@ func main() { // nolint gocyclo
 		fc = FileConfig{
 			Configs: []Config{
 				{
-					Host:    *host,
-					Port:    *port,
-					Address: *address,
-					Status:  *status,
-					Timeout: *timeout,
-					Retry:   *retry,
-					Headers: headers,
+					Protocol: *proto,
+					Host:     *host,
+					Port:     *port,
+					Address:  *address,
+					Status:   *status,
+					Timeout:  *timeout,
+					Retry:    *retry,
+					Headers:  headers,
 				},
 			},
 		}

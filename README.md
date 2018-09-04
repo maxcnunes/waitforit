@@ -14,10 +14,11 @@ Wait until an address become available.
 
 ### Options
 
-- `-address`: Address (e.g. http://google.com or tcp://mysql_ip:mysql_port) - *former **full-connection***
-- `-status`: Expected status that address should return (e.g. 200)
+- `-address`: Address (e.g. http://google.com, tcp://mysql-ip:port, ssh://ip:port) - *former **full-connection***
+- `-proto`: Protocol to use during the connection
 - `-host`: Host to connect
 - `-port`: Port to connect (default 80)
+- `-status`: Expected status that address should return (e.g. 200)
 - `-timeout`: Seconds to wait until the address become available
 - `-retry`: Milliseconds to wait between retries (default 500)
 - `-debug`: Enable debug
