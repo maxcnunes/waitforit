@@ -99,7 +99,7 @@ func main() { // nolint gocyclo
 				if len(result) != 2 {
 					continue
 				}
-				headers[result[0]] = result[1]
+				headers[result[0]] = strings.TrimLeft(result[1], " ")
 			}
 		}
 
