@@ -95,7 +95,7 @@ func main() { // nolint gocyclo
 		headers := make(map[string]string)
 		if len(fheaders) > 0 {
 			for _, v := range fheaders {
-				result := strings.SplitN(v, ": ", 2)
+				result := strings.SplitN(v, ":", 2)
 				if len(result) != 2 {
 					continue
 				}
