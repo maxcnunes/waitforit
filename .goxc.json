@@ -4,7 +4,7 @@
 		"xc"
 	],
 	"BuildConstraints": "linux,amd64 windows,amd64 darwin,amd64",
-	"PackageVersion": "2.4.0",
+	"PackageVersion": "2.4.1",
 	"TaskSettings": {
 		"xc": {
 			"GOARM": "7"
