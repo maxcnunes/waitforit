@@ -20,6 +20,7 @@ type Config struct {
 	Port     int               `json:"port"`
 	Address  string            `json:"address"`
 	Status   int               `json:"status"`
+	Insecure bool              `json:"insecure"`
 	Timeout  int               `json:"timeout"`
 	Retry    int               `json:"retry"`
 	Headers  map[string]string `json:"headers"`
@@ -33,11 +34,7 @@ type FileConfig struct {
 type arrayFlags []string
 
 func (i *arrayFlags) String() string {
-	s := ""
-	// for _, v := range i {
-	// 	s += " " + v
-	// }
-	return s
+	return ""
 }
 
 func (i *arrayFlags) Set(value string) error {
@@ -61,6 +58,7 @@ func main() { // nolint gocyclo
 	status := flag.Int("status", 0, "expected status that address should return (e.g. 200")
 	timeout := flag.Int("timeout", 10, "seconds to wait until the address become available")
 	retry := flag.Int("retry", 500, "milliseconds to wait between retries")
+	insecure := flag.Bool("insecure", false, "allows waitforit to perform \"insecure\" SSL connections")
 	printVersion := flag.Bool("v", false, "show the current version")
 	debug := flag.Bool("debug", false, "enable debug")
 	file := flag.String("file", "", "path of json file to read configs from")
@@ -112,6 +110,7 @@ func main() { // nolint gocyclo
 					Address:  *address,
 					Status:   *status,
 					Timeout:  *timeout,
+					Insecure: *insecure,
 					Retry:    *retry,
 					Headers:  headers,
 				},

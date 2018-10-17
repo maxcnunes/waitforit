@@ -35,14 +35,21 @@ func (s *Server) Start() (err error) {
 		return err
 	}
 
-	if s.conn.URL.Scheme == "http" {
-		s.server = &httptest.Server{
-			Listener: s.listener,
-			Config:   &http.Server{Handler: s.serverHandler},
-		}
-
-		s.server.Start()
+	if s.conn.URL.Scheme != "http" && s.conn.URL.Scheme != "https" {
+		return nil
 	}
+
+	s.server = &httptest.Server{
+		Listener: s.listener,
+		Config:   &http.Server{Handler: s.serverHandler},
+	}
+
+	if s.conn.URL.Scheme == "http" {
+		s.server.Start()
+	} else if s.conn.URL.Scheme == "https" {
+		s.server.StartTLS()
+	}
+
 	return nil
 }
 
@@ -97,6 +104,15 @@ func TestDialConn(t *testing.T) {
 		{
 			title:         "Should successfully check a HTTP connection that is already available.",
 			cfg:           &Config{Address: "http://localhost:8080"},
+			status:        0,
+			allowStart:    true,
+			openConnAfter: 0,
+			finishOk:      true,
+			serverHanlder: nil,
+		},
+		{
+			title:         "Should successfully check a HTTPS connection that is already available.",
+			cfg:           &Config{Address: "https://localhost:8443", Insecure: true},
 			status:        0,
 			allowStart:    true,
 			openConnAfter: 0,
@@ -204,10 +220,11 @@ func TestDialConn(t *testing.T) {
 			}
 
 			conf := &Config{
-				Timeout: defaultTimeout,
-				Retry:   defaultRetry,
-				Status:  v.status,
-				Headers: v.headers,
+				Timeout:  defaultTimeout,
+				Retry:    defaultRetry,
+				Status:   v.status,
+				Headers:  v.headers,
+				Insecure: v.cfg.Insecure,
 			}
 
 			err = DialConn(conn, conf, print)

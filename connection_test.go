@@ -48,12 +48,12 @@ func TestBuildConn(t *testing.T) {
 		{
 			"Should be able to create a http connection through the address",
 			input{address: "http://localhost"},
-			&expected{netType: "tcp", host: "localhost", address: "http://localhost"},
+			&expected{netType: "tcp", host: "localhost:80", address: "http://localhost:80"},
 		},
 		{
 			"Should be able to create a https connection through the address",
 			input{address: "https://localhost"},
-			&expected{netType: "tcp", host: "localhost", address: "https://localhost"},
+			&expected{netType: "tcp", host: "localhost:443", address: "https://localhost:443"},
 		},
 		{
 			"Should support address to https with custom port",
@@ -63,7 +63,7 @@ func TestBuildConn(t *testing.T) {
 		{
 			"Should be able to create a http connection with a path through the address",
 			input{address: "https://localhost/cars"},
-			&expected{netType: "tcp", host: "localhost", address: "https://localhost/cars"},
+			&expected{netType: "tcp", host: "localhost:443", address: "https://localhost:443/cars"},
 		},
 		{
 			"Should be able to create a http connection with a path with inner paths",

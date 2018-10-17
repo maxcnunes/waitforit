@@ -21,6 +21,7 @@ Wait until an address become available.
 - `-status`: Expected status that address should return (e.g. 200)
 - `-timeout`: Seconds to wait until the address become available
 - `-retry`: Milliseconds to wait between retries (default 500)
+- `-insecure`: Allows waitforit to perform \"insecure\" SSL connections
 - `-debug`: Enable debug
 - `-v`: Show the current version
 - `-file`: Path to the JSON file with the configs

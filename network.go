@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"net"
@@ -58,6 +59,12 @@ func pingAddress(conn *Connection, conf *Config, print func(a ...interface{})) e
 	}
 
 	client := &http.Client{}
+	if conf.Insecure {
+		client.Transport = &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+	}
+
 	req, err := http.NewRequest("GET", address, nil)
 	if err != nil {
 		return fmt.Errorf("Error creating request: %v", err)

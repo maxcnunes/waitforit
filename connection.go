@@ -21,6 +21,11 @@ var defaultProtPorts = map[string]string{
 	"ssh":   "22",
 }
 
+var defaultPortSchemes = map[string]string{
+	"80":  "http",
+	"443": "https",
+}
+
 // BuildConn build a connection structure.
 // This connection data can later be used as a common structure
 // by the functions that will check if the target is available.
@@ -56,27 +61,50 @@ func BuildConn(cfg *Config) (*Connection, error) { // nolint gocyclo
 		return nil, fmt.Errorf("Couldn't parse address: %s", address)
 	}
 
-	p := u.Port()
-
 	// resolve default port based on the provided scheme
-	if p == "0" {
-		if dp, ok := defaultProtPorts[u.Scheme]; ok {
-			var re = regexp.MustCompile(`:0$`)
-			u.Host = re.ReplaceAllString(u.Host, ":"+dp)
-		}
-	}
+	u.Host = resolveHost(u)
 
 	// resolve default scheme based on the provided port
-	if u.Scheme == "" {
-		if p == "80" {
-			u.Scheme = "http"
-		} else if p == "443" {
-			u.Scheme = "https"
-		}
-	}
+	u.Scheme = resolveScheme(u)
 
 	return &Connection{
 		NetworkType: "tcp",
 		URL:         u,
 	}, nil
+}
+
+func resolveHost(u *url.URL) string {
+	p := u.Port()
+
+	if p != "0" && p != "" {
+		return u.Host
+	}
+
+	dp, ok := defaultProtPorts[u.Scheme]
+	if !ok {
+		return u.Host
+	}
+
+	if p == "" {
+		return net.JoinHostPort(u.Host, dp)
+	}
+
+	if p == "0" {
+		var re = regexp.MustCompile(`:0$`)
+		return re.ReplaceAllString(u.Host, ":"+dp)
+	}
+
+	return u.Host
+}
+
+func resolveScheme(u *url.URL) string {
+	p := u.Port()
+
+	if u.Scheme == "" {
+		if scheme, ok := defaultPortSchemes[p]; ok {
+			return scheme
+		}
+	}
+
+	return u.Scheme
 }
