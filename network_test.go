@@ -227,13 +227,19 @@ func TestDialConn(t *testing.T) {
 				Insecure: v.cfg.Insecure,
 			}
 
-			err = DialConn(conn, conf, print)
-			if err != nil && v.finishOk {
-				t.Errorf("Expected to connect successfully %s. But got error %v.", v.cfg.Address, err)
+			res := DialConn(conn, conf, print)
+
+			if res.Err != nil && v.finishOk {
+				t.Errorf("Expected to connect successfully %s. But got error %v.", v.cfg.Address, res.Err)
 				return
 			}
 
-			if err == nil && !v.finishOk {
+			if res.Conn != conn {
+				t.Errorf("Expected response connection to be the same conn that was sent")
+				return
+			}
+
+			if res.Err == nil && !v.finishOk {
 				t.Errorf("Expected to not connect successfully %s.", v.cfg.Address)
 			}
 		})
@@ -357,7 +363,7 @@ func TestDialConfigs(t *testing.T) { // nolint gocyclo
 				}
 			}
 
-			err := DialConfigs(confs, print)
+			err := DialConfigs(confs, print, false)
 			if err != nil && finishAllOk {
 				t.Errorf("Expected to connect successfully %#v. But got error %v.", confs, err)
 				return

@@ -10,24 +10,63 @@ import (
 	"time"
 )
 
-// DialConfigs dial multiple connections at same time
-func DialConfigs(confs []Config, print func(a ...interface{})) error {
-	ch := make(chan error)
-	for _, config := range confs {
-		go func(conf Config) {
-			conn, err := BuildConn(&conf)
-			if err != nil {
-				ch <- fmt.Errorf("Invalid connection %#v: %v", conf, err)
-				return
-			}
+// Result of the connection dial
+type Result struct {
+	Conn *Connection
+	Err  error
+}
 
+// DialConfigs dial multiple connections at same time
+func DialConfigs(confs []Config, print func(a ...interface{}), waitingFor bool) error {
+	ch := make(chan *Result)
+	var connsWaitingFor []*Connection
+
+	if waitingFor {
+		message := "\033[H\033[2JWaiting for: "
+
+		for _, conf := range confs {
+			message += "\nHost: " + conf.Host + ":" + strconv.Itoa(conf.Port)
+		}
+
+		fmt.Println(message)
+	}
+
+	for _, config := range confs {
+		conn, err := BuildConn(&config)
+
+		if err != nil {
+			err := fmt.Errorf("Invalid connection %#v: %v", config, err)
+			ch <- &Result{nil, err}
+			return err
+		}
+
+		connsWaitingFor = append(connsWaitingFor, conn)
+
+		go func(conf Config) {
 			ch <- DialConn(conn, &conf, print)
 		}(config)
 	}
 
 	for i := 0; i < len(confs); i++ {
-		if err := <-ch; err != nil {
-			return err
+		res := <-ch
+
+		if waitingFor {
+			connsWaitingFor = removeConn(connsWaitingFor, res.Conn)
+			if len(connsWaitingFor) > 0 {
+				message := "\033[H\033[2JWaiting for: "
+
+				for _, conn := range connsWaitingFor {
+					message += "\nHost: " + conn.URL.Host
+				}
+
+				fmt.Println(message)
+			} else {
+				fmt.Println("\033[H\033[2JAll hosts are running")
+			}
+		}
+
+		if res.Err != nil {
+			return res.Err
 		}
 	}
 
@@ -35,25 +74,31 @@ func DialConfigs(confs []Config, print func(a ...interface{})) error {
 }
 
 // DialConn check if the connection is available
-func DialConn(conn *Connection, conf *Config, print func(a ...interface{})) error {
+func DialConn(conn *Connection, conf *Config, print func(a ...interface{})) *Result {
 	print("Waiting " + strconv.Itoa(conf.Timeout) + " seconds")
-	if err := pingHost(conn, conf, print); err != nil {
-		return err
+	res := pingHost(conn, conf, print)
+
+	if res.Err != nil {
+		return res
 	}
 
 	if conn.URL.Scheme == "http" || conn.URL.Scheme == "https" {
 		return pingAddress(conn, conf, print)
 	}
 
-	return nil
+	return res
 }
 
 // pingAddress check if the full address is responding properly
-func pingAddress(conn *Connection, conf *Config, print func(a ...interface{})) error {
+func pingAddress(conn *Connection, conf *Config, print func(a ...interface{})) *Result {
 	timeout := time.Duration(conf.Timeout) * time.Second
 	start := time.Now()
 	address := conn.URL.String()
 	print("Ping http address: " + address)
+	res := &Result{
+		Conn: conn,
+		Err:  nil,
+	}
 	if conf.Status > 0 {
 		print("Expect HTTP status" + strconv.Itoa(conf.Status))
 	}
@@ -67,7 +112,8 @@ func pingAddress(conn *Connection, conf *Config, print func(a ...interface{})) e
 
 	req, err := http.NewRequest("GET", address, nil)
 	if err != nil {
-		return fmt.Errorf("Error creating request: %v", err)
+		res.Err = fmt.Errorf("Error creating request: %v", err)
+		return res
 	}
 
 	for k, v := range conf.Headers {
@@ -83,14 +129,15 @@ func pingAddress(conn *Connection, conf *Config, print func(a ...interface{})) e
 
 		if err == nil {
 			if conf.Status > 0 && conf.Status == resp.StatusCode {
-				return nil
+				return res
 			} else if conf.Status == 0 && resp.StatusCode < http.StatusInternalServerError {
-				return nil
+				return res
 			}
 		}
 
 		if time.Since(start) > timeout {
-			return errors.New(resp.Status)
+			res.Err = errors.New(resp.Status)
+			return res
 		}
 
 		time.Sleep(time.Duration(conf.Retry) * time.Millisecond)
@@ -98,11 +145,15 @@ func pingAddress(conn *Connection, conf *Config, print func(a ...interface{})) e
 }
 
 // pingHost check if the host (hostname:port) is responding properly
-func pingHost(conn *Connection, conf *Config, print func(a ...interface{})) error {
+func pingHost(conn *Connection, conf *Config, print func(a ...interface{})) *Result {
 	timeout := time.Duration(conf.Timeout) * time.Second
 	start := time.Now()
 	address := conn.URL.Host
 	print("Ping host: " + address)
+	res := &Result{
+		Conn: conn,
+		Err:  nil,
+	}
 
 	for {
 		_, err := net.DialTimeout(conn.NetworkType, address, time.Second)
@@ -110,15 +161,27 @@ func pingHost(conn *Connection, conf *Config, print func(a ...interface{})) erro
 
 		if err == nil {
 			print("Up: " + address)
-			return nil
+			return res
 		}
 
 		print("Down: " + address)
 		print(err)
 		if time.Since(start) > timeout {
-			return err
+			res.Err = err
+			return res
 		}
 
 		time.Sleep(time.Duration(conf.Retry) * time.Millisecond)
 	}
+}
+
+func removeConn(connsWaitingFor []*Connection, connToRemove *Connection) []*Connection {
+	for i, conn := range connsWaitingFor {
+		if conn == connToRemove {
+			connsWaitingFor = append(connsWaitingFor[:i], connsWaitingFor[i+1:]...)
+			break
+		}
+	}
+
+	return connsWaitingFor
 }
