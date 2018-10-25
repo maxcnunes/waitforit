@@ -49,7 +49,7 @@ func BuildConn(cfg *Config) (*Connection, error) { // nolint gocyclo
 	// so it try again adding a tcp scheme as falback
 	var err2 error
 	if err != nil || (u.Scheme != "" && u.Host == "") {
-		u, err = url.Parse(fmt.Sprintf("tcp://%s", address))
+		u, err2 = url.Parse(fmt.Sprintf("tcp://%s", address))
 	}
 
 	// return error from the original address
