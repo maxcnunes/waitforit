@@ -24,6 +24,7 @@ type Config struct {
 	Timeout  int               `json:"timeout"`
 	Retry    int               `json:"retry"`
 	Headers  map[string]string `json:"headers"`
+	Body	 bool			   `json:body`
 }
 
 // FileConfig describes the structure of the config json file
@@ -62,6 +63,8 @@ func main() { // nolint gocyclo
 	printVersion := flag.Bool("v", false, "show the current version")
 	debug := flag.Bool("debug", false, "enable debug")
 	file := flag.String("file", "", "path of json file to read configs from")
+	body := flag.Bool("body", false, "print response body")
+
 	flag.Var(&fheaders, "header", "list of headers sent in the http(s) ping request")
 
 	flag.Parse()
@@ -113,6 +116,7 @@ func main() { // nolint gocyclo
 					Insecure: *insecure,
 					Retry:    *retry,
 					Headers:  headers,
+					Body:	  *body,
 				},
 			},
 		}

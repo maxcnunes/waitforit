@@ -27,6 +27,7 @@ Wait until an address become available.
 - `-file`: Path to the JSON file with the configs
 - `-header`: List of headers sent in the http(s) ping request
 - `-- `: Execute a post command once the address became available
+- `-body`: Print response body
 
 ### Example
 

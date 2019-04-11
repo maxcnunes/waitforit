@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"strconv"
@@ -79,6 +80,14 @@ func pingAddress(conn *Connection, conf *Config, print func(a ...interface{})) e
 		resp, err := client.Do(req)
 		if resp != nil {
 			print("Ping http address " + address + " " + resp.Status)
+
+			if conf.Body {
+				bodyBytes, err := ioutil.ReadAll(resp.Body)
+				if err != nil {
+					return fmt.Errorf("Error reading body: %v", err)
+				}
+				fmt.Printf("Response Body:" + string(bodyBytes))
+			}
 		}
 
 		if err == nil {
