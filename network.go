@@ -90,6 +90,9 @@ func pingAddress(conn *Connection, conf *Config, print func(a ...interface{})) e
 		}
 
 		if time.Since(start) > timeout {
+			if err != nil {
+				return err
+			}
 			return errors.New(resp.Status)
 		}
 
