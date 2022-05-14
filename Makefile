@@ -6,7 +6,7 @@ BIN         = ${TOOL_NAME}
 all: build
 
 build:
-	@goxc
+	@go build
 
 ## Start application
 run:
