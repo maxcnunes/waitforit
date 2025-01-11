@@ -1,3 +1,6 @@
+| :warning: This project has been transferred to https://github.com/maxclaus/waitforit. Keeping this fork around so existing referrences still work as before.
+| ---
+
 # wait for it
 
 [![Build Status](https://travis-ci.org/maxcnunes/waitforit.svg?branch=master)](https://travis-ci.org/maxcnunes/waitforit)
